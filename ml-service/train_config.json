@@ -1,0 +1,13 @@
+{
+    "csv_path": "./merged_json_table.csv",
+    "model_type": "XGBoost",
+    "use_smote": false,
+    "test_size": 0.2,
+    "random_state": 42,
+    "output_dir": "./models/risk_model_001",
+    "alpha": 0.6,
+    "text_column": "description_clean",
+    "max_features": 20000,
+    "calibrate": true
+  }
+

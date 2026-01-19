@@ -1,0 +1,39 @@
+# VulnRisk Configuration
+
+risk_calculation:
+  alpha: 0.6  # Weight for ML probability
+  beta: 0.4   # Weight for CVSS score
+
+ml_service:
+  timeout: 300  # seconds
+  max_features: 20000
+
+risk_levels:
+  low:
+    max: 0.40
+  medium:
+    min: 0.40
+    max: 0.70
+  high:
+    min: 0.70
+    max: 0.90
+  critical:
+    min: 0.90
+    max: 1.0
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

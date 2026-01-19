@@ -1,0 +1,86 @@
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: vulnrisk-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: vulnrisk
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend-node:
+    build:
+      context: ./backend-node
+      dockerfile: Dockerfile
+    container_name: vulnrisk-backend
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/vulnrisk?schema=public
+      PORT: 3000
+      ML_SERVICE_URL: http://ml-service:5000
+      NODE_ENV: production
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./data:/app/data
+      - ./models:/app/models
+      - ./models:/models:ro
+      - ./backend-node/uploads:/app/uploads
+      - ./backend-node/scripts:/app/scripts:ro
+    command: sh -c "npx prisma migrate deploy && npm start"
+
+  ml-service:
+    build:
+      context: ./ml-service
+      dockerfile: Dockerfile
+    container_name: vulnrisk-ml
+    environment:
+      MODELS_DIR: /app/models
+      DATA_DIR: /app/data
+      RISK_ALPHA: 0.6
+      RISK_BETA: 0.4
+      PORT: 5000
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./models:/app/models
+      - ./ml-service/models:/app/ml-models:ro
+      - ./data:/app/data:ro
+      # 映射代码文件，覆盖构建时的代码（注意：这会覆盖容器内的/app目录）
+      - ./ml-service/app.py:/app/app.py:ro
+      - ./ml-service/predict.py:/app/predict.py:ro
+      - ./ml-service/risk.py:/app/risk.py:ro
+      - ./ml-service/data_exploration.py:/app/data_exploration.py:ro
+      - ./ml-service/train_risk_model.py:/app/train_risk_model.py:ro
+      - ./ml-service/infer_unseen_risk.py:/app/infer_unseen_risk.py:ro
+      - ./ml-service/plot_risk_analysis.py:/app/plot_risk_analysis.py:ro
+      - ./ml-service/merged_json_table.csv:/app/merged_json_table.csv:ro
+      - ./ml-service/train_random_forest_config.json:/app/train_random_forest_config.json:ro
+
+  frontend-vue:
+    build:
+      context: ./frontend-vue
+      dockerfile: Dockerfile
+    container_name: vulnrisk-frontend
+    depends_on:
+      - backend-node
+    ports:
+      - "80:80"
+    volumes:
+      - ./frontend-vue/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    # 添加环境变量，标记为Docker环境
+    environment:
+      - DOCKER=true
+
+volumes:
+  postgres_data:

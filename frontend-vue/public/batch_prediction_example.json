@@ -1,0 +1,38 @@
+{
+  "samples": [
+    {
+      "sample_id": "CVE-2024-0001",
+      "text_description": "A buffer overflow vulnerability exists in the authentication module that allows remote attackers to execute arbitrary code via a crafted request.",
+      "cvss_base_score": 9.8
+    },
+    {
+      "sample_id": "CVE-2024-0002",
+      "text_description": "Cross-site scripting (XSS) vulnerability in the user input validation allows attackers to inject malicious scripts.",
+      "cvss_base_score": 6.1
+    },
+    {
+      "sample_id": "CVE-2024-0003",
+      "text_description": "SQL injection vulnerability in the database query function allows unauthorized access to sensitive data.",
+      "cvss_base_score": 8.5
+    },
+    {
+      "sample_id": "CVE-2024-0004",
+      "text_description": "Improper access control in the API endpoint allows unauthenticated users to access restricted resources.",
+      "cvss_base_score": 7.2
+    },
+    {
+      "sample_id": "CVE-2024-0005",
+      "text_description": "Information disclosure vulnerability in error messages reveals sensitive system information to attackers.",
+      "cvss_base_score": 4.3
+    }
+  ]
+}
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,49 @@
+{
+  "samples": [
+    {
+      "description_clean": "A remote code execution vulnerability exists in the web server component. An attacker can exploit this by sending a specially crafted HTTP request that triggers a buffer overflow in the request parsing function.",
+      "cwe_id": "CWE-120",
+      "vendor": "Example Corp",
+      "product": "WebServer v2.0",
+      "cvss_base": 9.8
+    },
+    {
+      "description_clean": "Cross-site scripting (XSS) vulnerability allows an attacker to inject malicious scripts into web pages viewed by other users. The application does not properly sanitize user input before displaying it.",
+      "cwe_id": "CWE-79",
+      "vendor": "WebApp Inc",
+      "product": "CMS Platform",
+      "cvss_base": 6.1
+    },
+    {
+      "description_clean": "SQL injection vulnerability in the login form allows an attacker to bypass authentication by injecting malicious SQL queries. The application concatenates user input directly into SQL statements.",
+      "cwe_id": "CWE-89",
+      "vendor": "Database Systems",
+      "product": "Login Module",
+      "cvss_base": 8.5
+    },
+    {
+      "description_clean": "Missing authentication allows unauthenticated users to access sensitive administrative functions. The application does not verify user identity before granting access to protected resources.",
+      "cwe_id": "CWE-306",
+      "vendor": "Admin Tools",
+      "product": "Admin Panel"
+    },
+    {
+      "description_clean": "Path traversal vulnerability enables an attacker to read arbitrary files from the server filesystem by manipulating file path parameters. The application does not validate or sanitize file paths.",
+      "cwe_id": "CWE-22",
+      "vendor": "File Services",
+      "product": "File Manager",
+      "cvss_base": 7.2
+    }
+  ]
+}
+
+
+
+
+
+
+
+
+
+
+

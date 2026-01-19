@@ -1,0 +1,16 @@
+{
+  "predictions_csv": "predictions.csv",
+  "output_dir": "risk_analysis_figures",
+  "text_column": "description_clean"
+}
+
+
+
+
+
+
+
+
+
+
+

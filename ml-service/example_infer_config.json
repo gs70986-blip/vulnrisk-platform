@@ -1,0 +1,18 @@
+{
+  "csv_path": "data/unseen_data.csv",
+  "model_dir": "models/risk_model_001",
+  "output_path": "predictions.csv",
+  "text_column": "description_clean",
+  "alpha": 0.6
+}
+
+
+
+
+
+
+
+
+
+
+

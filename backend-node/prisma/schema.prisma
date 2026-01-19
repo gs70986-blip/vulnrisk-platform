@@ -1,0 +1,75 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Dataset {
+  id        String   @id @default(uuid())
+  name      String
+  schema    Json     // Stores field schema information
+  recordCount Int    @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("datasets")
+}
+
+model MLModel {
+  id           String   @id @default(uuid())
+  type         String   // "RandomForest" | "XGBoost"
+  metrics      Json     // Stores accuracy, precision, recall, f1, roc_auc
+  artifactPath String   // Path to model.joblib file
+  metadata     Json?    // Additional metadata (params, feature_importance)
+  isActive     Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  predictions  Prediction[]
+
+  @@map("ml_models")
+}
+
+model Prediction {
+  id        String   @id @default(uuid())
+  modelId   String
+  model     MLModel  @relation(fields: [modelId], references: [id])
+  sampleId  String
+  textDescription String? // Original text description
+  pVuln     Float    // Probability of vulnerability [0, 1]
+  cvss      Float?   // CVSS base score [0, 10]
+  riskScore Float    // Calculated risk score [0, 1]
+  riskLevel String   // "Low" | "Medium" | "High" | "Critical" | "N/A" | "Uncertain"
+  explanation String? // Explanation for N/A or Uncertain cases
+  metadata   Json?    // Additional metadata (applicable, reason, max_similarity, etc.)
+  createdAt DateTime @default(now())
+
+  @@map("predictions")
+  @@index([modelId])
+  @@index([sampleId])
+}
+
+model User {
+  id        String   @id @default(uuid())
+  username  String   @unique
+  email     String?  @unique
+  password  String   // Hashed password
+  role      String   @default("user") // "admin" | "user"
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("users")
+  @@index([username])
+  @@index([email])
+}
+
+
+
+
+
+
+
+

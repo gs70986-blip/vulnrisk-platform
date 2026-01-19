@@ -1,0 +1,128 @@
+[
+  {
+    "sample_id": "TEST-001",
+    "text_description": "Remote code execution vulnerability in authentication module. An attacker can exploit this by sending specially crafted requests to bypass authentication checks and execute arbitrary code on the server with elevated privileges. This vulnerability affects versions 1.0.0 through 2.5.0.",
+    "cvss_base_score": 9.8
+  },
+  {
+    "sample_id": "TEST-002",
+    "text_description": "SQL injection vulnerability in user input validation. Attackers can inject malicious SQL queries through the username field, potentially accessing sensitive database information including user credentials and personal data. No authentication required for exploitation.",
+    "cvss_base_score": 9.1
+  },
+  {
+    "sample_id": "TEST-003",
+    "text_description": "Buffer overflow in image processing library. A crafted image file can cause a stack-based buffer overflow, leading to arbitrary code execution. The vulnerability exists in the image parsing function that does not properly validate input size.",
+    "cvss_base_score": 8.8
+  },
+  {
+    "sample_id": "TEST-004",
+    "text_description": "Cross-site scripting (XSS) vulnerability in comment system. Malicious scripts can be injected through user comments and executed in the context of other users browsers, potentially stealing session cookies and authentication tokens.",
+    "cvss_base_score": 7.2
+  },
+  {
+    "sample_id": "TEST-005",
+    "text_description": "Path traversal vulnerability in file upload feature. Attackers can upload files with directory traversal sequences to write arbitrary files outside the intended directory, potentially leading to remote code execution.",
+    "cvss_base_score": 8.5
+  },
+  {
+    "sample_id": "TEST-006",
+    "text_description": "Information disclosure vulnerability in error messages. Detailed error messages reveal sensitive information about the system architecture, database structure, and file paths that could aid attackers in further exploitation.",
+    "cvss_base_score": 5.3
+  },
+  {
+    "sample_id": "TEST-007",
+    "text_description": "Weak password policy enforcement. The system does not enforce strong password requirements, allowing users to set weak passwords that are easily guessable or vulnerable to brute force attacks.",
+    "cvss_base_score": 4.9
+  },
+  {
+    "sample_id": "TEST-008",
+    "text_description": "Insecure direct object reference. The application exposes internal object references in URLs without proper authorization checks, allowing users to access resources belonging to other users.",
+    "cvss_base_score": 6.5
+  },
+  {
+    "sample_id": "TEST-009",
+    "text_description": "Missing security headers. The application does not set important security headers such as X-Content-Type-Options, X-Frame-Options, and Content-Security-Policy, leaving it vulnerable to various client-side attacks.",
+    "cvss_base_score": 4.2
+  },
+  {
+    "sample_id": "TEST-010",
+    "text_description": "Session fixation vulnerability. The application does not regenerate session identifiers after login, allowing attackers who can set a session ID to hijack user sessions after authentication.",
+    "cvss_base_score": 5.8
+  },
+  {
+    "sample_id": "TEST-011",
+    "text_description": "Verbose error messages in development mode. Error messages provide detailed stack traces that could reveal information about the application structure, though this only occurs in development environments.",
+    "cvss_base_score": 2.5
+  },
+  {
+    "sample_id": "TEST-012",
+    "text_description": "Missing rate limiting on login endpoint. The login page does not implement rate limiting, potentially allowing brute force attacks, though account lockout mechanisms provide some protection.",
+    "cvss_base_score": 3.1
+  },
+  {
+    "sample_id": "TEST-013",
+    "text_description": "Weak encryption algorithm for password storage. The application uses MD5 hashing for password storage, which is considered cryptographically weak, though it requires access to the database to exploit.",
+    "cvss_base_score": 3.9
+  },
+  {
+    "sample_id": "TEST-014",
+    "text_description": "Information disclosure in API response. API endpoints return more information than necessary, including internal IDs and system metadata, though this information alone does not enable direct exploitation.",
+    "cvss_base_score": 2.8
+  },
+  {
+    "sample_id": "TEST-015",
+    "text_description": "Missing input validation on optional fields. Some optional form fields do not validate input format, though the data is not used in security-critical operations.",
+    "cvss_base_score": 1.8
+  },
+  {
+    "sample_id": "GITHUB-001",
+    "text_description": "Security issue: Unvalidated redirect in logout functionality. The logout endpoint accepts a redirect URL parameter without validation, potentially allowing open redirect attacks.",
+    "cvss_base_score": 6.1
+  },
+  {
+    "sample_id": "GITHUB-002",
+    "text_description": "Bug: Memory leak in long-running processes. The application accumulates memory over time when processing large batches of requests, potentially leading to denial of service.",
+    "cvss_base_score": 4.5
+  },
+  {
+    "sample_id": "GITHUB-003",
+    "text_description": "Vulnerability: Hardcoded API keys in source code. The application contains hardcoded API keys and credentials in the source code repository, which could be exposed if the repository is made public.",
+    "cvss_base_score": 7.5
+  },
+  {
+    "sample_id": "GITHUB-004",
+    "text_description": "Issue: Insufficient logging of security events. The application does not log failed authentication attempts or suspicious activities, making it difficult to detect and respond to security incidents.",
+    "cvss_base_score": 3.2
+  },
+  {
+    "sample_id": "GITHUB-005",
+    "text_description": "Security concern: Use of deprecated cryptographic functions. The application uses SHA-1 for digital signatures, which is considered cryptographically broken and should be replaced with SHA-256 or SHA-3.",
+    "cvss_base_score": 5.7
+  },
+  {
+    "sample_id": "COMMIT-001",
+    "text_description": "Fix: Prevent command injection in system call. Added input sanitization to prevent command injection attacks when executing system commands with user-provided data.",
+    "cvss_base_score": 8.2
+  },
+  {
+    "sample_id": "COMMIT-002",
+    "text_description": "Security: Add CSRF protection to state-changing operations. Implemented CSRF tokens for all POST, PUT, and DELETE requests to prevent cross-site request forgery attacks.",
+    "cvss_base_score": 6.8
+  },
+  {
+    "sample_id": "COMMIT-003",
+    "text_description": "Fix: Resolve race condition in file upload. Fixed a time-of-check-time-of-use vulnerability that could allow attackers to overwrite files by exploiting a race condition during upload.",
+    "cvss_base_score": 7.3
+  },
+  {
+    "sample_id": "COMMIT-004",
+    "text_description": "Security: Implement proper access control checks. Added authorization checks to ensure users can only access resources they are permitted to view or modify.",
+    "cvss_base_score": 5.4
+  },
+  {
+    "sample_id": "COMMIT-005",
+    "text_description": "Fix: Validate file types in upload handler. Added strict file type validation to prevent uploading executable files or scripts that could be executed on the server.",
+    "cvss_base_score": 6.2
+  }
+]
+

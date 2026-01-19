@@ -1,0 +1,217 @@
+/**
+ * 测试数据生成脚本
+ * 生成用于前端预测测试的样本数据
+ */
+
+const fs = require('fs');
+const path = require('path');
+
+// 生成测试样本
+function generateTestSamples() {
+    const samples = [
+        {
+            description_clean: "A remote code execution vulnerability exists in the web server component. An attacker can exploit this by sending a specially crafted HTTP request that triggers a buffer overflow in the request parsing function.",
+            cwe_id: "CWE-120",
+            vendor: "Example Corp",
+            product: "WebServer v2.0"
+        },
+        {
+            description_clean: "Cross-site scripting (XSS) vulnerability allows an attacker to inject malicious scripts into web pages viewed by other users. The application does not properly sanitize user input before displaying it.",
+            cwe_id: "CWE-79",
+            vendor: "WebApp Inc",
+            product: "CMS Platform"
+        },
+        {
+            description_clean: "SQL injection vulnerability in the login form allows an attacker to bypass authentication by injecting malicious SQL queries. The application concatenates user input directly into SQL statements.",
+            cwe_id: "CWE-89",
+            vendor: "Database Systems",
+            product: "Login Module"
+        },
+        {
+            description_clean: "Missing authentication allows unauthenticated users to access sensitive administrative functions. The application does not verify user identity before granting access to protected resources.",
+            cwe_id: "CWE-306",
+            vendor: "Admin Tools",
+            product: "Admin Panel"
+        },
+        {
+            description_clean: "Path traversal vulnerability enables an attacker to read arbitrary files from the server filesystem by manipulating file path parameters. The application does not validate or sanitize file paths.",
+            cwe_id: "CWE-22",
+            vendor: "File Services",
+            product: "File Manager"
+        },
+        {
+            description_clean: "Information disclosure vulnerability exposes sensitive user data through error messages. When an error occurs, the application reveals database connection strings and internal file paths.",
+            cwe_id: "CWE-209",
+            vendor: "Data Services",
+            product: "Error Handler"
+        },
+        {
+            description_clean: "Denial of service vulnerability allows an attacker to crash the application by sending a large number of concurrent requests. The server cannot handle the load and becomes unresponsive.",
+            cwe_id: "CWE-400",
+            vendor: "Server Software",
+            product: "HTTP Server"
+        },
+        {
+            description_clean: "Command injection vulnerability in the system administration interface allows an attacker to execute arbitrary operating system commands. The application passes user input directly to system shell commands.",
+            cwe_id: "CWE-78",
+            vendor: "System Tools",
+            product: "Admin Interface"
+        },
+        {
+            description_clean: "Insecure direct object reference allows an attacker to access other users' data by manipulating object identifiers in URLs. The application does not verify that the user has permission to access the requested object.",
+            cwe_id: "CWE-639",
+            vendor: "User Management",
+            product: "User Portal"
+        },
+        {
+            description_clean: "Cross-site request forgery (CSRF) vulnerability allows an attacker to perform unauthorized actions on behalf of authenticated users. The application does not validate the origin of requests.",
+            cwe_id: "CWE-352",
+            vendor: "Web Framework",
+            product: "Action Handler"
+        },
+        {
+            description_clean: "Unvalidated redirect vulnerability allows an attacker to redirect users to malicious websites. The application accepts user-supplied URLs without validation and redirects users to those URLs.",
+            cwe_id: "CWE-601",
+            vendor: "Web Services",
+            product: "Redirect Module"
+        },
+        {
+            description_clean: "XML external entity (XXE) injection vulnerability allows an attacker to read arbitrary files from the server. The application processes XML input without disabling external entity resolution.",
+            cwe_id: "CWE-611",
+            vendor: "XML Parser",
+            product: "XML Processor"
+        },
+        {
+            description_clean: "Server-side request forgery (SSRF) vulnerability allows an attacker to make requests to internal network resources. The application fetches URLs provided by users without validating the target.",
+            cwe_id: "CWE-918",
+            vendor: "Network Services",
+            product: "URL Fetcher"
+        },
+        {
+            description_clean: "Insecure deserialization vulnerability allows an attacker to execute arbitrary code by deserializing malicious objects. The application deserializes user-controlled data without proper validation.",
+            cwe_id: "CWE-502",
+            vendor: "Data Processing",
+            product: "Serializer"
+        },
+        {
+            description_clean: "Use of hard-coded credentials allows unauthorized access to the system. The application contains hard-coded passwords or API keys in the source code.",
+            cwe_id: "CWE-798",
+            vendor: "Security Module",
+            product: "Auth System"
+        },
+        {
+            description_clean: "Missing encryption of sensitive data allows an attacker to intercept and read confidential information. The application transmits sensitive data over unencrypted connections.",
+            cwe_id: "CWE-311",
+            vendor: "Communication Layer",
+            product: "Network Protocol"
+        },
+        {
+            description_clean: "Improper access control allows users to access resources they should not have permission to view. The application does not properly enforce authorization checks.",
+            cwe_id: "CWE-284",
+            vendor: "Access Control",
+            product: "Permission System"
+        },
+        {
+            description_clean: "Race condition vulnerability allows an attacker to exploit timing issues to gain unauthorized access. Multiple threads access shared resources without proper synchronization.",
+            cwe_id: "CWE-362",
+            vendor: "Concurrency Manager",
+            product: "Thread Handler"
+        },
+        {
+            description_clean: "Improper input validation allows an attacker to inject malicious data that causes unexpected behavior. The application does not validate or sanitize user input before processing.",
+            cwe_id: "CWE-20",
+            vendor: "Input Handler",
+            product: "Form Processor"
+        },
+        {
+            description_clean: "Use of weak cryptographic algorithm allows an attacker to break encryption and access protected data. The application uses outdated or insecure cryptographic functions.",
+            cwe_id: "CWE-327",
+            vendor: "Crypto Library",
+            product: "Encryption Module"
+        },
+        {
+            description_clean: "Unrestricted upload of file with dangerous type allows an attacker to upload and execute malicious files. The application does not validate file types or scan uploaded files.",
+            cwe_id: "CWE-434",
+            vendor: "File Upload",
+            product: "Upload Handler"
+        },
+        {
+            description_clean: "Missing rate limiting allows an attacker to perform brute force attacks or abuse the system. The application does not limit the number of requests from a single source.",
+            cwe_id: "CWE-307",
+            vendor: "API Gateway",
+            product: "Request Handler"
+        },
+        {
+            description_clean: "Insufficient session expiration allows an attacker to reuse old session tokens. The application does not properly invalidate sessions after logout or timeout.",
+            cwe_id: "CWE-613",
+            vendor: "Session Manager",
+            product: "Session Handler"
+        },
+        {
+            description_clean: "Improper error handling exposes sensitive information through error messages. When exceptions occur, the application reveals internal details that could aid attackers.",
+            cwe_id: "CWE-209",
+            vendor: "Error Handler",
+            product: "Exception Manager"
+        },
+        {
+            description_clean: "Missing security headers allows attackers to exploit browser vulnerabilities. The application does not set proper security headers like Content-Security-Policy or X-Frame-Options.",
+            cwe_id: "CWE-693",
+            vendor: "Web Server",
+            product: "HTTP Handler"
+        }
+    ];
+    
+    return samples;
+}
+
+// 保存测试数据
+function saveTestData() {
+    const samples = generateTestSamples();
+    const outputDir = path.join(__dirname, 'test_data');
+    
+    // 创建输出目录
+    if (!fs.existsSync(outputDir)) {
+        fs.mkdirSync(outputDir, { recursive: true });
+    }
+    
+    // 保存为JSON
+    const jsonPath = path.join(outputDir, 'test_samples.json');
+    fs.writeFileSync(jsonPath, JSON.stringify(samples, null, 2), 'utf-8');
+    console.log(`测试数据已保存到: ${jsonPath}`);
+    console.log(`共生成 ${samples.length} 个测试样本`);
+    
+    // 保存为CSV（用于批量预测）
+    const csvPath = path.join(outputDir, 'test_samples.csv');
+    const csvHeader = 'description_clean,cwe_id,vendor,product\n';
+    const csvRows = samples.map(s => {
+        const desc = (s.description_clean || '').replace(/"/g, '""');
+        const cwe = s.cwe_id || '';
+        const vendor = (s.vendor || '').replace(/"/g, '""');
+        const product = (s.product || '').replace(/"/g, '""');
+        return `"${desc}","${cwe}","${vendor}","${product}"`;
+    }).join('\n');
+    fs.writeFileSync(csvPath, csvHeader + csvRows, 'utf-8');
+    console.log(`CSV格式已保存到: ${csvPath}`);
+}
+
+// 主函数
+if (require.main === module) {
+    console.log('='.repeat(60));
+    console.log('测试数据生成脚本');
+    console.log('='.repeat(60));
+    saveTestData();
+    console.log('\n完成！');
+}
+
+module.exports = { generateTestSamples, saveTestData };
+
+
+
+
+
+
+
+
+
+
+
