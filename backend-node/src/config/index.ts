@@ -10,8 +10,7 @@ export const config = {
   uploadDir: process.env.UPLOAD_DIR || './uploads',
   jwtSecret: (process.env.JWT_SECRET || 'your-secret-key-change-in-production') as string,
   jwtExpiresIn: (process.env.JWT_EXPIRES_IN || '7d') as string,
-  // Auto-append training data switch - default false to prevent feedback loop pollution
-  autoAppendTrainingData: process.env.AUTO_APPEND_TRAINING_DATA === 'true',
+  // Note: AUTO_APPEND_TRAINING_DATA feature has been removed to prevent model pollution
 };
 
 

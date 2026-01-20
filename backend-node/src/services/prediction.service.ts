@@ -4,7 +4,6 @@ import { config } from '../config';
 import path from 'path';
 import fs from 'fs/promises';
 import { parse } from 'csv-parse/sync';
-import { DatasetService } from './dataset.service';
 
 export interface PredictionInput {
   sample_id: string;
@@ -17,11 +16,6 @@ export interface BatchPredictionInput {
 }
 
 export class PredictionService {
-  private datasetService: DatasetService;
-
-  constructor() {
-    this.datasetService = new DatasetService();
-  }
 
   async predict(input: PredictionInput, modelId?: string) {
     // Get active model if not specified
@@ -68,33 +62,6 @@ export class PredictionService {
           metadata: meta ? meta : null,  // 保存 meta 到数据库（JSON 字段）
         },
       });
-
-      // Append input data to training dataset
-      // IMPORTANT: Only append if AUTO_APPEND_TRAINING_DATA=true to prevent feedback loop pollution
-      // Also skip if riskLevel is N/A/Uncertain or gatingReason indicates low similarity/OOD
-      if (config.autoAppendTrainingData) {
-        const gatingReason = meta?.reason;
-        const shouldAppend = risk_level !== 'N/A' && 
-                            risk_level !== 'Uncertain' && 
-                            gatingReason !== 'LOW_SIMILARITY' && 
-                            gatingReason !== 'OOD';
-        
-        if (shouldAppend) {
-          try {
-            await this.datasetService.appendToTrainingDataset({
-              sample_id: input.sample_id,
-              text_description: input.text_description,
-              cvss_base_score: input.cvss_base_score,
-              label: p_vuln > 0.5 ? 1 : 0,
-            });
-          } catch (error) {
-            // Log error but don't fail the prediction if dataset append fails
-            console.error('Failed to append to training dataset:', error);
-          }
-        } else {
-          console.log(`Skipping training data append: riskLevel=${risk_level}, gatingReason=${gatingReason}`);
-        }
-      }
 
       // explanation 和 meta 已经存储在数据库中，直接返回即可
       return prediction;
@@ -150,39 +117,6 @@ export class PredictionService {
           })
         )
       );
-
-      // Append all input samples to training dataset
-      // IMPORTANT: Only append if AUTO_APPEND_TRAINING_DATA=true to prevent feedback loop pollution
-      // Also skip samples where riskLevel is N/A/Uncertain or gatingReason indicates low similarity/OOD
-      if (config.autoAppendTrainingData) {
-        try {
-          await Promise.all(
-            input.samples.map((sample, index) => {
-              const pred = predictions[index];
-              const gatingReason = pred.meta?.reason;
-              const shouldAppend = pred.risk_level !== 'N/A' && 
-                                  pred.risk_level !== 'Uncertain' && 
-                                  gatingReason !== 'LOW_SIMILARITY' && 
-                                  gatingReason !== 'OOD';
-              
-              if (shouldAppend) {
-                return this.datasetService.appendToTrainingDataset({
-                  sample_id: sample.sample_id,
-                  text_description: sample.text_description,
-                  cvss_base_score: sample.cvss_base_score,
-                  label: pred.p_vuln > 0.5 ? 1 : 0,
-                });
-              } else {
-                console.log(`Skipping training data append for sample ${sample.sample_id}: riskLevel=${pred.risk_level}, gatingReason=${gatingReason}`);
-                return Promise.resolve();
-              }
-            })
-          );
-        } catch (error) {
-          // Log error but don't fail the batch prediction if dataset append fails
-          console.error('Failed to append to training dataset:', error);
-        }
-      }
 
       return savedPredictions;
     } catch (error: any) {

@@ -1,0 +1,154 @@
+VulnRisk 项目目录结构树
+=====================================
+
+Project/
+│
+├── frontend-vue/                    【前端服务 - Vue 3】
+│   ├── src/
+│   │   ├── App.vue                  # 主应用组件
+│   │   ├── main.ts                  # 入口文件
+│   │   ├── router/index.ts          # 路由配置
+│   │   ├── services/api.ts          # API 服务
+│   │   ├── stores/auth.ts           # 状态管理
+│   │   └── views/                   # 页面视图
+│   │       ├── Login.vue
+│   │       ├── Datasets.vue
+│   │       ├── Models.vue
+│   │       ├── Predictions.vue
+│   │       └── Report.vue
+│   ├── public/                      # 静态资源
+│   ├── Dockerfile
+│   ├── nginx.conf
+│   └── package.json
+│
+├── backend-node/                     【后端服务 - Node.js】
+│   ├── src/
+│   │   ├── server.ts                # 服务器入口
+│   │   ├── app.ts                   # 应用配置
+│   │   ├── config/index.ts          # 配置管理
+│   │   ├── db/index.ts              # 数据库连接
+│   │   ├── middleware/              # 中间件
+│   │   │   └── auth.middleware.ts   # JWT 认证
+│   │   ├── routes/                  # 路由定义
+│   │   │   ├── auth.ts
+│   │   │   ├── datasets.ts
+│   │   │   ├── models.ts
+│   │   │   ├── predictions.ts
+│   │   │   ├── github.ts
+│   │   │   └── health.ts
+│   │   ├── controllers/             # 控制器
+│   │   │   ├── auth.controller.ts
+│   │   │   ├── dataset.controller.ts
+│   │   │   ├── model.controller.ts
+│   │   │   ├── prediction.controller.ts
+│   │   │   └── github.controller.ts
+│   │   ├── services/                # 业务逻辑
+│   │   │   ├── auth.service.ts
+│   │   │   ├── dataset.service.ts
+│   │   │   ├── model.service.ts
+│   │   │   ├── prediction.service.ts
+│   │   │   ├── risk.service.ts
+│   │   │   └── github.service.ts
+│   │   └── utils/                   # 工具函数
+│   │       └── ensureDirs.ts
+│   ├── prisma/                      # 数据库 ORM
+│   │   ├── schema.prisma            # 数据模型
+│   │   └── migrations/              # 迁移文件
+│   ├── scripts/                     # 管理脚本
+│   │   ├── create-admin.js
+│   │   ├── register-model.js
+│   │   ├── reset-password.js
+│   │   └── restore-data.js
+│   ├── uploads/                     # 上传文件
+│   ├── Dockerfile
+│   └── package.json
+│
+├── ml-service/                       【ML 服务 - Python】
+│   ├── app.py                       # Flask 主应用
+│   ├── predict.py                   # 预测模块
+│   ├── risk.py                      # 风险计算
+│   ├── train.py                     # 训练模块
+│   ├── train_risk_model.py          # 风险模型训练
+│   ├── data_exploration.py          # 数据探索
+│   ├── infer_unseen_risk.py         # 未知风险推理
+│   ├── plot_risk_analysis.py        # 可视化分析
+│   ├── models/                      # 本地模型
+│   ├── requirements.txt             # Python 依赖
+│   └── Dockerfile
+│
+├── models/                           【模型存储】
+│   ├── risk_model_001/
+│   │   ├── model.joblib
+│   │   ├── vectorizer.joblib
+│   │   ├── metadata.json
+│   │   └── training_predictions.csv
+│   ├── risk_model_002_smote/
+│   └── risk_model_003_rf/
+│
+├── data/                             【数据集存储】
+│
+├── test_data/                        【测试数据】
+│   ├── example_batch_data.json
+│   ├── test_samples.csv
+│   └── test_samples.json
+│
+├── docker-compose.yml                【容器编排】
+├── config.yaml                       【全局配置】
+│
+├── README.md                         【项目文档】
+├── README_CN.md
+├── 快速启动指南.md
+├── deploy_guide.md
+├── start.sh / start.bat              【启动脚本】
+└── [其他文档...]
+
+
+系统架构层次
+=====================================
+
+┌─────────────────────────────────────┐
+│        用户层 (Browser)              │
+└──────────────┬──────────────────────┘
+               │ HTTP/HTTPS
+┌──────────────▼──────────────────────┐
+│   前端层 (Vue 3 + Nginx)            │
+│   Port: 80                          │
+└──────────────┬──────────────────────┘
+               │ REST API
+┌──────────────▼──────────────────────┐
+│   后端层 (Node.js + Express)        │
+│   Port: 3000                        │
+└──────┬──────────────────┬───────────┘
+       │                  │
+       │ Prisma ORM       │ HTTP API
+       │                  │
+┌──────▼──────────┐  ┌────▼──────────────┐
+│  PostgreSQL     │  │  ML Service       │
+│  Port: 5432     │  │  (Flask)          │
+│                 │  │  Port: 5000       │
+└─────────────────┘  └───────────────────┘
+                            │
+                            │ 文件读写
+                            │
+                     ┌──────▼──────────┐
+                     │  模型文件存储    │
+                     │  (models/)      │
+                     └─────────────────┘
+
+
+服务端口分配
+=====================================
+- 80    : 前端 (Nginx)
+- 3000  : 后端 API (Express)
+- 5000  : ML 服务 (Flask)
+- 5432  : PostgreSQL 数据库
+
+
+核心技术栈
+=====================================
+前端: Vue 3 + TypeScript + Element Plus + ECharts
+后端: Node.js + Express + Prisma + TypeScript
+ML:   Python + Flask + scikit-learn + XGBoost
+数据库: PostgreSQL 15
+容器: Docker + Docker Compose
+

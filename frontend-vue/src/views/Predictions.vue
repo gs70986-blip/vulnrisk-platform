@@ -223,7 +223,7 @@ CVE-2024-0001,"Vulnerability description...",7.5</pre>
     <el-card style="margin-top: 20px">
       <template #header>
         <div class="card-header">
-          <span>GitHub 文本抓取（Issue/PR/Commit）</span>
+          <span>GitHub Text Extraction (Issue/PR/Commit)</span>
         </div>
       </template>
       <div style="padding: 10px 0">
@@ -235,10 +235,10 @@ CVE-2024-0001,"Vulnerability description...",7.5</pre>
           <template #default>
             <div style="font-size: 13px">
               <p style="margin: 0 0 5px 0">
-                <strong>提示：</strong>建议粘贴真实 issue/PR/commit 文本作为模型输入；CVSS 可选
+                <strong>Tip:</strong> Paste real issue/PR/commit text as model input; CVSS is optional
               </p>
               <p style="margin: 0; font-size: 12px; color: #909399">
-                支持格式：
+                Supported formats:
                 <code style="background: #f5f7fa; padding: 2px 6px; border-radius: 3px; font-size: 11px">
                   https://github.com/{owner}/{repo}/issues/{number}
                 </code>
@@ -255,12 +255,12 @@ CVE-2024-0001,"Vulnerability description...",7.5</pre>
         
         <el-tabs v-model="githubTab" style="margin-top: 10px">
           <!-- Single Fetch Tab -->
-          <el-tab-pane label="单个抓取" name="single">
+          <el-tab-pane label="Single Fetch" name="single">
             <el-form :model="githubForm" label-width="0" style="margin-top: 15px">
               <el-form-item>
                 <el-input
                   v-model="githubForm.url"
-                  placeholder="粘贴 GitHub Issue/PR/Commit 链接"
+                  placeholder="Paste GitHub Issue/PR/Commit URL"
                   :disabled="fetchingGithub"
                 >
                   <template #append>
@@ -270,7 +270,7 @@ CVE-2024-0001,"Vulnerability description...",7.5</pre>
                       :loading="fetchingGithub"
                       :disabled="!githubForm.url"
                     >
-                      抓取
+                      Fetch
                     </el-button>
                   </template>
                 </el-input>
@@ -279,14 +279,14 @@ CVE-2024-0001,"Vulnerability description...",7.5</pre>
           </el-tab-pane>
 
           <!-- Batch Fetch Tab -->
-          <el-tab-pane label="批量抓取" name="batch">
+          <el-tab-pane label="Batch Fetch" name="batch">
             <el-form :model="githubBatchForm" label-width="0" style="margin-top: 15px">
               <el-form-item>
                 <el-input
                   v-model="githubBatchForm.urls"
                   type="textarea"
                   :rows="8"
-                  placeholder="每行粘贴一个 GitHub URL，支持 Issue/PR/Commit 链接&#10;例如：&#10;https://github.com/owner/repo/issues/123&#10;https://github.com/owner/repo/pull/456&#10;https://github.com/owner/repo/commit/abc1234"
+                  placeholder="Paste one GitHub URL per line, supports Issue/PR/Commit links&#10;Example:&#10;https://github.com/owner/repo/issues/123&#10;https://github.com/owner/repo/pull/456&#10;https://github.com/owner/repo/commit/abc1234"
                   :disabled="fetchingGithubBatch"
                 />
               </el-form-item>
@@ -298,7 +298,7 @@ CVE-2024-0001,"Vulnerability description...",7.5</pre>
                   :disabled="!githubBatchForm.urls.trim()"
                   style="width: 100%"
                 >
-                  批量抓取
+                  Batch Fetch
                 </el-button>
               </el-form-item>
             </el-form>
@@ -313,9 +313,9 @@ CVE-2024-0001,"Vulnerability description...",7.5</pre>
                 <template #default>
                   <div style="font-size: 13px">
                     <p style="margin: 0">
-                      抓取完成：成功 <strong>{{ githubBatchResults.successCount }}</strong> 个，
-                      失败 <strong>{{ githubBatchResults.failureCount }}</strong> 个，
-                      总计 <strong>{{ githubBatchResults.totalCount }}</strong> 个
+                      Fetch completed: <strong>{{ githubBatchResults.successCount }}</strong> succeeded,
+                      <strong>{{ githubBatchResults.failureCount }}</strong> failed,
+                      <strong>{{ githubBatchResults.totalCount }}</strong> total
                     </p>
                   </div>
                 </template>
@@ -324,14 +324,14 @@ CVE-2024-0001,"Vulnerability description...",7.5</pre>
               <div v-if="githubBatchResults.results.length > 0" style="max-height: 300px; overflow-y: auto">
                 <el-table :data="githubBatchResults.results" size="small" border>
                   <el-table-column prop="url" label="URL" min-width="300" show-overflow-tooltip />
-                  <el-table-column label="状态" width="80">
+                  <el-table-column label="Status" width="80">
                     <template #default="scope">
                       <el-tag :type="scope.row.success ? 'success' : 'danger'" size="small">
-                        {{ scope.row.success ? '成功' : '失败' }}
+                        {{ scope.row.success ? 'Success' : 'Failed' }}
                       </el-tag>
                     </template>
                   </el-table-column>
-                  <el-table-column prop="error" label="错误信息" min-width="200" show-overflow-tooltip>
+                  <el-table-column prop="error" label="Error Message" min-width="200" show-overflow-tooltip>
                     <template #default="scope">
                       {{ scope.row.error || '-' }}
                     </template>
@@ -345,7 +345,7 @@ CVE-2024-0001,"Vulnerability description...",7.5</pre>
                   @click="useBatchResultsForPrediction"
                   :disabled="githubBatchResults.successCount === 0"
                 >
-                  使用成功结果进行批量预测
+                  Use Successful Results for Batch Prediction
                 </el-button>
               </div>
             </div>
@@ -660,9 +660,9 @@ const getRiskTagType = (level: string) => {
     case 'Low':
       return 'success'
     case 'N/A':
-      return '' // 灰色默认样式
+      return '' // Default gray style
     case 'Uncertain':
-      return 'warning' // 橙色警告样式
+      return 'warning' // Orange warning style
     default:
       return 'info'
   }
@@ -670,7 +670,7 @@ const getRiskTagType = (level: string) => {
 
 const fetchGitHubText = async () => {
   if (!githubForm.value.url.trim()) {
-    ElMessage.warning('请输入 GitHub URL')
+    ElMessage.warning('Please enter a GitHub URL')
     return
   }
 
@@ -684,9 +684,9 @@ const fetchGitHubText = async () => {
     singleForm.value.cvss_base_score = undefined // Keep CVSS empty as required
 
     // Show success message
-    const truncatedMsg = result.meta.truncated ? '（已截断）' : ''
+    const truncatedMsg = result.meta.truncated ? ' (truncated)' : ''
     ElMessage.success(
-      `抓取成功：${result.sourceType}，sample_id: ${result.sample_id}${truncatedMsg}`
+      `Fetch successful: ${result.sourceType}, sample_id: ${result.sample_id}${truncatedMsg}`
     )
 
     // Open the single prediction dialog
@@ -695,7 +695,7 @@ const fetchGitHubText = async () => {
     // Clear GitHub form
     githubForm.value.url = ''
   } catch (error: any) {
-    ElMessage.error('抓取失败：' + (error.response?.data?.error || error.message || 'Unknown error'))
+    ElMessage.error('Fetch failed: ' + (error.response?.data?.error || error.message || 'Unknown error'))
   } finally {
     fetchingGithub.value = false
   }
@@ -703,7 +703,7 @@ const fetchGitHubText = async () => {
 
 const fetchGitHubTextBatch = async () => {
   if (!githubBatchForm.value.urls.trim()) {
-    ElMessage.warning('请输入至少一个 GitHub URL')
+    ElMessage.warning('Please enter at least one GitHub URL')
     return
   }
 
@@ -714,7 +714,7 @@ const fetchGitHubTextBatch = async () => {
     .filter((url) => url.length > 0)
 
   if (urls.length === 0) {
-    ElMessage.warning('请输入至少一个有效的 GitHub URL')
+    ElMessage.warning('Please enter at least one valid GitHub URL')
     return
   }
 
@@ -726,14 +726,14 @@ const fetchGitHubTextBatch = async () => {
 
     // Show summary message
     if (result.failureCount === 0) {
-      ElMessage.success(`批量抓取成功：${result.successCount} 个 URL 全部抓取成功`)
+      ElMessage.success(`Batch fetch successful: ${result.successCount} URLs all fetched successfully`)
     } else {
       ElMessage.warning(
-        `批量抓取完成：成功 ${result.successCount} 个，失败 ${result.failureCount} 个`
+        `Batch fetch completed: ${result.successCount} succeeded, ${result.failureCount} failed`
       )
     }
   } catch (error: any) {
-    ElMessage.error('批量抓取失败：' + (error.response?.data?.error || error.message || 'Unknown error'))
+    ElMessage.error('Batch fetch failed: ' + (error.response?.data?.error || error.message || 'Unknown error'))
   } finally {
     fetchingGithubBatch.value = false
   }
@@ -741,7 +741,7 @@ const fetchGitHubTextBatch = async () => {
 
 const useBatchResultsForPrediction = async () => {
   if (!githubBatchResults.value || githubBatchResults.value.successCount === 0) {
-    ElMessage.warning('没有可用的抓取结果')
+    ElMessage.warning('No available fetch results')
     return
   }
 
@@ -755,7 +755,7 @@ const useBatchResultsForPrediction = async () => {
     }))
 
   if (successfulSamples.length === 0) {
-    ElMessage.warning('没有可用的抓取结果')
+    ElMessage.warning('No available fetch results')
     return
   }
 
@@ -767,7 +767,7 @@ const useBatchResultsForPrediction = async () => {
     })
 
     const count = result.predictions?.length || result.count || 0
-    ElMessage.success(`批量预测完成：${count} 个预测已保存`)
+    ElMessage.success(`Batch prediction completed: ${count} predictions saved`)
 
     // Clear batch results and form
     githubBatchResults.value = null
@@ -776,7 +776,7 @@ const useBatchResultsForPrediction = async () => {
     // Reload predictions
     loadPredictions()
   } catch (error: any) {
-    ElMessage.error('批量预测失败：' + (error.message || 'Unknown error'))
+    ElMessage.error('Batch prediction failed: ' + (error.message || 'Unknown error'))
   } finally {
     predicting.value = false
   }
