@@ -66,12 +66,20 @@ export interface Prediction {
     nonzero_features?: number | null
     text_len?: number | null
     thresholds?: Record<string, any>
+    p_vuln_raw?: number
+    is_clipped?: boolean
+    reliability?: 'High' | 'Medium' | 'Low'
+    warnings?: string[]
   } | null
   id: string
   modelId: string
   sampleId: string
   textDescription?: string
   pVuln: number
+  pVulnRaw?: number  // 新增：原始预测值
+  isClipped?: boolean  // 新增：是否被裁剪
+  reliability?: 'High' | 'Medium' | 'Low'  // 新增：可靠性
+  warnings?: string[]  // 新增：警告信息
   cvss?: number
   riskScore: number
   riskLevel: string

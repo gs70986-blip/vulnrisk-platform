@@ -340,32 +340,67 @@ def predict():
             clip_min_nonzero_tfidf=CLIP_MIN_NONZERO_TFIDF
         )
         
-        # 根据适用性判定结果进行裁剪
+        # ========== Soft Degrade（软降级）逻辑 ==========
+        # 不再强制置零，而是继续计算但标记低可信度
+        is_clipped = False
+        reliability = "High"
+        warnings = []
+        
+        # 计算风险评分（始终计算，不强制置零）
+        risk_score = calculate_risk_score(p_vuln, cvss_base_score, alpha=alpha)
+        
+        # 根据适用性判定结果进行软降级
         if not applicability['applicable'] and CLIP_NA_ENABLED:
-            # 强制裁剪：置零并设置为 N/A
-            p_vuln_clipped = p_vuln  # 保存裁剪前的值用于 explanation
-            p_vuln = 0.0
-            risk_score = 0.0
-            risk_level = 'N/A'
+            is_clipped = True
+            reliability = "Low"
+            
             # 安全获取 debug 值
             debug_info = applicability.get('debug', {})
             max_sim = debug_info.get('max_similarity') if debug_info.get('max_similarity') is not None else 0.0
             nonzero_feat = debug_info.get('nonzero_features') if debug_info.get('nonzero_features') is not None else 0
             text_len_debug = debug_info.get('text_len', 0)
             
-            explanation_map = {
-                'EMPTY_TEXT': f'Input text too short ({text_len_debug} chars < {CLIP_MIN_TEXT_LEN} chars). Scoring not applicable.',
-                'LOW_SIMILARITY': f'Input text has low similarity to vulnerability corpus (max similarity {max_sim:.3f} < {CLIP_SIM_THRESHOLD}). Scoring not applicable.',
-                'LOW_SIGNAL': f'Input text has insufficient TF-IDF features ({nonzero_feat} < {CLIP_MIN_NONZERO_TFIDF}). Scoring not applicable.',
-                'LOW_PVULN': f'Input text has very low vulnerability probability ({p_vuln_clipped:.3f} < {CLIP_PVULN_THRESHOLD}). Input text not vulnerability-related; scoring not applicable.'
+            # 生成警告信息（不再说"not vulnerability-related"）
+            warning_map = {
+                'EMPTY_TEXT': f'Input text is too short ({text_len_debug} chars < {CLIP_MIN_TEXT_LEN} chars). Evidence insufficient for reliable scoring.',
+                'LOW_SIMILARITY': f'Input text has low similarity to vulnerability corpus (max similarity {max_sim:.3f} < {CLIP_SIM_THRESHOLD}). Confidence reduced.',
+                'LOW_SIGNAL': f'Input text has insufficient TF-IDF features ({nonzero_feat} < {CLIP_MIN_NONZERO_TFIDF}). Evidence insufficient for reliable scoring.',
+                'LOW_PVULN': f'Model probability is very low ({p_vuln:.3f} < {CLIP_PVULN_THRESHOLD}). Insufficient evidence for high-severity scoring.'
             }
-            explanation = explanation_map.get(applicability['reason'], 'Input text not vulnerability-related; scoring not applicable.')
+            warning_msg = warning_map.get(applicability['reason'], 'Insufficient evidence for high-severity scoring.')
+            warnings.append(warning_msg)
+            
+            # 生成explanation（强调低置信度，不否定漏洞相关性）
+            explanation_map = {
+                'EMPTY_TEXT': f'Input text is too short ({text_len_debug} chars). The assessment has low confidence due to insufficient information. Results should be interpreted with caution.',
+                'LOW_SIMILARITY': f'Input text shows low similarity to training corpus (max similarity {max_sim:.3f}). The assessment has reduced confidence. Results are for reference only.',
+                'LOW_SIGNAL': f'Input text has insufficient TF-IDF features ({nonzero_feat}). The assessment has low confidence due to limited evidence. Results should be interpreted with caution.',
+                'LOW_PVULN': f'Model probability is low ({p_vuln:.3f}). The assessment has low confidence. Results are for reference only and should be interpreted with caution.'
+            }
+            explanation = explanation_map.get(applicability['reason'], 'Assessment has low confidence due to insufficient evidence. Results are for reference only.')
+            
+            # riskLevel 不再为 N/A，改为 Low 或 Unknown
+            if risk_score < 0.4:
+                risk_level = 'Low'
+            else:
+                # 如果risk_score较高但p_vuln很低，标记为Unknown
+                risk_level = 'Unknown'
+            
             applicable = False
             gating_reason = applicability['reason']
         else:
             # 正常情况：计算风险评分
-            risk_score = calculate_risk_score(p_vuln, cvss_base_score, alpha=alpha)
             risk_level = get_risk_level(risk_score)
+            
+            # 根据p_vuln_raw和特征覆盖度确定可靠性
+            if p_vuln_raw < 0.1 or feature_coverage < 0.02:
+                reliability = "Low"
+                warnings.append("Low model confidence due to limited evidence. Results should be interpreted with caution.")
+            elif p_vuln_raw < 0.3 or feature_coverage < 0.05:
+                reliability = "Medium"
+            else:
+                reliability = "High"
+            
             explanation = None
             applicable = True
             gating_reason = None
@@ -373,19 +408,24 @@ def predict():
         # 构建返回结果
         result = {
             'sample_id': sample.get('sample_id', 'unknown'),
-            'p_vuln': float(p_vuln),
-            'p_vuln_raw': float(p_vuln_raw),  # 原始预测值，用于调试
-            'risk_score': float(risk_score),
-            'risk_level': risk_level,
+            'p_vuln': float(p_vuln),  # 调整后的预测值（可能被降级）
+            'p_vuln_raw': float(p_vuln_raw),  # 原始模型预测值（永远保留）
+            'risk_score': float(risk_score) if risk_score is not None else None,  # 不强制置0
+            'risk_level': risk_level,  # 不再为N/A
             'cvss_base_score': float(cvss_base_score) if cvss_base_score is not None else None,
             'cvss_estimated': bool(cvss_estimated),  # 标记 CVSS 是否为估算值
             'cvss_method': cvss_method,  # CVSS 来源方法
+            # 新增字段
+            'is_clipped': bool(is_clipped),  # 是否被裁剪/降级
+            'reliability': reliability,  # 可靠性：High/Medium/Low
+            'warnings': warnings if warnings else [],  # 警告信息列表
+            # 调试信息（保留）
             'feature_coverage': float(feature_coverage),  # 特征覆盖度，用于调试
             'feature_sum': float(feature_sum),  # 特征权重总和，用于调试
             'has_security_keywords': bool(has_security_keywords),  # 是否包含安全关键词
             'confidence_adjustment': float(confidence_adjustment),  # 置信度调整系数，用于调试
-            # 工程裁剪相关信息
-            'explanation': explanation,  # 解释信息（如果被裁剪）
+            # 工程裁剪相关信息（保留向后兼容）
+            'explanation': explanation,  # 解释信息（强调低置信度，不否定漏洞相关性）
             'meta': {
                 'applicable': bool(applicable),
                 'reason': gating_reason,  # 裁剪原因（如果 applicable=False）

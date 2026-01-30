@@ -77,7 +77,7 @@ def build_feature_pipeline(df, text_column='description_clean', max_features=200
 
 
 def train_model(X_train, y_train, X_test, y_test, model_type='XGBoost', 
-                calibrate=True, random_state=42):
+                calibrate=True, random_state=42, feature_names=None):
     """
     训练模型
     
@@ -89,6 +89,7 @@ def train_model(X_train, y_train, X_test, y_test, model_type='XGBoost',
         model_type: 模型类型 ('XGBoost' 或 'RandomForest')
         calibrate: 是否进行概率校准
         random_state: 随机种子
+        feature_names: TF-IDF特征名称列表（用于显示特征重要性）
     
     Returns:
         model: 训练好的模型
@@ -172,10 +173,14 @@ def train_model(X_train, y_train, X_test, y_test, model_type='XGBoost',
     if importances is not None:
         # 获取top特征
         top_indices = np.argsort(importances)[::-1][:20]
-        feature_names = [f"feature_{i}" for i in range(len(importances))]
+        # 使用真实的特征名称（如果提供），否则使用索引
+        if feature_names is not None and len(feature_names) == len(importances):
+            feature_name_list = feature_names
+        else:
+            feature_name_list = [f"feature_{i}" for i in range(len(importances))]
         for idx in top_indices:
             feature_importance.append({
-                'name': feature_names[idx],
+                'name': feature_name_list[idx] if idx < len(feature_name_list) else f"feature_{idx}",
                 'importance': float(importances[idx])
             })
     
@@ -292,7 +297,8 @@ def main():
     
     model, metrics, feature_importance = train_model(
         X_train, y_train, X_test, y_test,
-        model_type=model_type, calibrate=calibrate, random_state=random_state
+        model_type=model_type, calibrate=calibrate, random_state=random_state,
+        feature_names=feature_names
     )
     
     # 生成训练集预测（用于分析）

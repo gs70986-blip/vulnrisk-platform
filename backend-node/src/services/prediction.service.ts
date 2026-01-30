@@ -43,10 +43,30 @@ export class PredictionService {
     try {
       const response = await axios.post(`${config.mlServiceUrl}/predict`, mlRequest);
 
-      const { p_vuln, risk_score, risk_level, cvss_base_score, explanation, meta } = response.data;
+      const { 
+        p_vuln, 
+        p_vuln_raw,  // 新增：原始预测值
+        risk_score, 
+        risk_level, 
+        cvss_base_score, 
+        explanation, 
+        meta,
+        is_clipped,  // 新增：是否被裁剪
+        reliability,  // 新增：可靠性
+        warnings  // 新增：警告信息
+      } = response.data;
 
       // 使用 ML 服务返回的 CVSS（如果输入为空，ML 服务会返回估算值）
       const finalCvss = cvss_base_score ?? input.cvss_base_score;
+
+      // 构建扩展的metadata，包含新字段
+      const extendedMeta = {
+        ...(meta || {}),
+        p_vuln_raw: p_vuln_raw,  // 原始预测值
+        is_clipped: is_clipped || false,  // 是否被裁剪
+        reliability: reliability || 'Medium',  // 可靠性
+        warnings: warnings || [],  // 警告信息
+      };
 
       // Save prediction to database
       const prediction = await prisma.prediction.create({
@@ -56,15 +76,22 @@ export class PredictionService {
           textDescription: input.text_description,
           pVuln: p_vuln,
           cvss: finalCvss,  // 使用 ML 服务返回的 CVSS（包含估算值）
-          riskScore: risk_score,
-          riskLevel: risk_level,
+          riskScore: risk_score ?? 0,  // 如果为null，使用0（向后兼容）
+          riskLevel: risk_level === 'N/A' ? 'Unknown' : risk_level,  // 将N/A映射为Unknown
           explanation: explanation || null,  // 保存 explanation 到数据库
-          metadata: meta ? meta : null,  // 保存 meta 到数据库（JSON 字段）
+          metadata: extendedMeta,  // 保存扩展的meta到数据库（JSON 字段）
         },
       });
 
-      // explanation 和 meta 已经存储在数据库中，直接返回即可
-      return prediction;
+      // 返回时添加新字段到响应中（用于前端直接访问）
+      return {
+        ...prediction,
+        pVulnRaw: p_vuln_raw,
+        isClipped: is_clipped || false,
+        reliability: reliability || 'Medium',
+        warnings: warnings || [],
+        meta: extendedMeta,  // 同时提供meta字段（向后兼容）
+      };
     } catch (error: any) {
       if (axios.isAxiosError(error)) {
         throw new Error(`ML Service error: ${error.response?.data?.error || error.message}`);
@@ -101,21 +128,30 @@ export class PredictionService {
 
       // Save all predictions to database
       const savedPredictions = await Promise.all(
-        predictions.map((pred: any) =>
-          prisma.prediction.create({
+        predictions.map((pred: any) => {
+          // 构建扩展的metadata
+          const extendedMeta = {
+            ...(pred.meta || {}),
+            p_vuln_raw: pred.p_vuln_raw,
+            is_clipped: pred.is_clipped || false,
+            reliability: pred.reliability || 'Medium',
+            warnings: pred.warnings || [],
+          };
+
+          return prisma.prediction.create({
             data: {
               modelId: model!.id,
               sampleId: pred.sample_id,
               textDescription: pred.text_description,
               pVuln: pred.p_vuln,
               cvss: pred.cvss_base_score ?? undefined,  // 使用 ML 服务返回的 CVSS（包含估算值）
-              riskScore: pred.risk_score,
-              riskLevel: pred.risk_level,
+              riskScore: pred.risk_score ?? 0,  // 如果为null，使用0（向后兼容）
+              riskLevel: pred.risk_level === 'N/A' ? 'Unknown' : pred.risk_level,  // 将N/A映射为Unknown
               explanation: pred.explanation || null,  // 保存 explanation 到数据库
-              metadata: pred.meta ? pred.meta : null,  // 保存 meta 到数据库（JSON 字段）
+              metadata: extendedMeta,  // 保存扩展的meta到数据库（JSON 字段）
             },
-          })
-        )
+          });
+        })
       );
 
       return savedPredictions;
@@ -145,11 +181,18 @@ export class PredictionService {
       prisma.prediction.count(),
     ]);
 
-    // 将 metadata 映射为 meta，以匹配前端和 ML 服务的响应格式
-    const dataWithMeta = data.map((pred: any) => ({
-      ...pred,
-      meta: pred.metadata || null,  // 将 metadata 映射为 meta
-    }));
+    // 将 metadata 映射为 meta，并提取新字段
+    const dataWithMeta = data.map((pred: any) => {
+      const meta = pred.metadata as any || {};
+      return {
+        ...pred,
+        pVulnRaw: meta.p_vuln_raw ?? pred.pVuln,  // 如果没有原始值，使用pVuln
+        isClipped: meta.is_clipped || false,
+        reliability: meta.reliability || 'Medium',
+        warnings: meta.warnings || [],
+        meta: meta,  // 将 metadata 映射为 meta
+      };
+    });
 
     return {
       data: dataWithMeta,
@@ -158,12 +201,27 @@ export class PredictionService {
   }
 
   async getPredictionById(id: string) {
-    return prisma.prediction.findUnique({
+    const prediction = await prisma.prediction.findUnique({
       where: { id },
       include: {
         model: true,
       },
     });
+
+    if (!prediction) {
+      return null;
+    }
+
+    // 从metadata中提取新字段，添加到响应中
+    const meta = prediction.metadata as any || {};
+    return {
+      ...prediction,
+      pVulnRaw: meta.p_vuln_raw ?? prediction.pVuln,  // 如果没有原始值，使用pVuln
+      isClipped: meta.is_clipped || false,
+      reliability: meta.reliability || 'Medium',
+      warnings: meta.warnings || [],
+      meta: meta,  // 同时提供meta字段（向后兼容）
+    };
   }
 
   async getPredictionsByModelId(modelId: string, limit: number = 100, offset: number = 0) {

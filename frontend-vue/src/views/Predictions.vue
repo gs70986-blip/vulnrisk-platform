@@ -66,7 +66,13 @@
             <span style="margin-left: 8px">{{ formatRiskScore(scope.row.riskScore) }}</span>
           </template>
         </el-table-column>
-        <el-table-column label="Risk Level" width="200">
+        <el-table-column 
+          prop="riskLevel"
+          label="Risk Level" 
+          width="200"
+          sortable
+          :sort-method="sortRiskLevel"
+        >
           <template #default="scope">
             <div style="display: flex; align-items: center; gap: 5px;">
               <el-tag :type="getRiskTagType(scope.row.riskLevel)">
@@ -662,10 +668,35 @@ const getRiskTagType = (level: string) => {
     case 'N/A':
       return '' // Default gray style
     case 'Uncertain':
+    case 'Unknown':
       return 'warning' // Orange warning style
     default:
       return 'info'
   }
+}
+
+/**
+ * 风险等级排序方法
+ * 排序顺序：Low < Medium < High < Critical < Unknown/N/A
+ * @param a 第一行数据
+ * @param b 第二行数据
+ * @returns 负数表示a在b之前，正数表示a在b之后，0表示相等
+ */
+const sortRiskLevel = (a: any, b: any) => {
+  const riskLevelOrder: Record<string, number> = {
+    'Low': 1,
+    'Medium': 2,
+    'High': 3,
+    'Critical': 4,
+    'Unknown': 5,
+    'N/A': 5,
+    'Uncertain': 5,
+  }
+  
+  const levelA = riskLevelOrder[a.riskLevel] || 99
+  const levelB = riskLevelOrder[b.riskLevel] || 99
+  
+  return levelA - levelB
 }
 
 const fetchGitHubText = async () => {
