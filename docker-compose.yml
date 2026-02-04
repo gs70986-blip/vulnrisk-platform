@@ -24,11 +24,15 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    env_file:
+      - .env
     environment:
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/vulnrisk?schema=public
       PORT: 3000
       ML_SERVICE_URL: http://ml-service:5000
       NODE_ENV: production
+      GITHUB_DISABLE_LOCAL_FILTER: 'true'
+      GITHUB_TOKEN: ${GITHUB_TOKEN}
     ports:
       - "3000:3000"
     volumes:

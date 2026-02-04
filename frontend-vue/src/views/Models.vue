@@ -206,7 +206,14 @@ const metricsChartOption = computed(() => {
 const loadModels = async () => {
   loading.value = true
   try {
-    models.value = await modelApi.getAll()
+    const allModels = await modelApi.getAll()
+    // 前端也过滤掉 Stage B 严重度模型（双重保险）
+    models.value = allModels.filter(model => {
+      const metadata = model.metadata as any
+      const isSeverityModel = metadata?.model_function === 'severity' || 
+                             model.id.startsWith('sev_model_')
+      return !isSeverityModel
+    })
   } catch (error: any) {
     ElMessage.error(`Failed to load models: ${error.message}`)
   } finally {

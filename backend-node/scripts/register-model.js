@@ -10,10 +10,35 @@
  *   node scripts/register-model.js ../ml-service/models/risk_model_001 risk_model_001 --activate
  */
 
-require('dotenv').config();
-const { PrismaClient } = require('@prisma/client');
+// 加载 .env 文件（从多个可能的位置）
+const dotenv = require('dotenv');
 const fs = require('fs');
 const path = require('path');
+
+const envPaths = [
+  path.join(__dirname, '..', '.env'),           // backend-node/.env
+  path.join(__dirname, '..', '..', '.env'),     // 项目根目录/.env
+];
+
+let envLoaded = false;
+for (const envPath of envPaths) {
+  if (fs.existsSync(envPath)) {
+    dotenv.config({ path: envPath });
+    console.log(`[DEBUG] 加载 .env 文件: ${envPath}`);
+    envLoaded = true;
+    break;
+  }
+}
+
+if (!envLoaded) {
+  console.warn('[WARNING] 未找到 .env 文件，将使用系统环境变量');
+  console.warn(`[提示] 查找 .env 文件的位置:`);
+  envPaths.forEach(p => {
+    console.warn(`  ${fs.existsSync(p) ? '✓' : '✗'} ${p}`);
+  });
+}
+
+const { PrismaClient } = require('@prisma/client');
 
 const prisma = new PrismaClient();
 
@@ -101,6 +126,13 @@ async function registerModel(modelPath, modelId = null, activate = false) {
         if (existingModel) {
             console.log(`\n模型 ${finalModelId} 已存在，将更新...`);
             
+            // 检查是否是 Stage B 严重度模型
+            const isSeverityModel = metadata.model_function === 'severity' || 
+                                   finalModelId.startsWith('sev_model_');
+            
+            // 如果是 Stage B 严重度模型，强制激活
+            const shouldActivate = activate || isSeverityModel;
+            
             // 更新现有模型
             const updatedModel = await prisma.mLModel.update({
                 where: { id: finalModelId },
@@ -109,48 +141,77 @@ async function registerModel(modelPath, modelId = null, activate = false) {
                     artifactPath: dockerPath,
                     metrics: metadata.metrics,
                     metadata: metadata,
-                    isActive: activate ? true : existingModel.isActive
+                    isActive: shouldActivate ? true : existingModel.isActive
                 }
             });
             
             console.log(`模型已更新: ${updatedModel.id}`);
             
-            // 如果激活，需要先停用其他模型
-            if (activate) {
+            // 如果激活，需要先停用其他模型（但保留 Stage B 模型激活）
+            if (shouldActivate) {
                 await activateModel(finalModelId);
             }
         } else {
             console.log(`\n创建新模型记录...`);
             
+            // 检查是否是 Stage B 严重度模型
+            const isSeverityModel = metadata.model_function === 'severity' || 
+                                   finalModelId.startsWith('sev_model_');
+            
+            // 如果是 Stage B 严重度模型，强制激活
+            const shouldActivate = activate || isSeverityModel;
+            
             // 创建新模型
             const newModel = await prisma.mLModel.create({
                 data: {
                     id: finalModelId,
-                    type: metadata.model_type, // 使用 type 而不是 modelType
+                    type: metadata.model_type, // 使用 metadata.model_type
                     artifactPath: dockerPath,
                     metrics: metadata.metrics,
                     metadata: metadata,
-                    isActive: activate
+                    isActive: shouldActivate
                 }
             });
             
             console.log(`模型已创建: ${newModel.id}`);
             
-            // 如果激活，需要先停用其他模型
-            if (activate) {
+            // 如果激活，需要先停用其他模型（但保留 Stage B 模型激活）
+            if (shouldActivate) {
                 await activateModel(finalModelId);
             }
         }
         
         // 显示当前激活的模型
-        const activeModel = await prisma.mLModel.findFirst({
-            where: { isActive: true }
+        const activeAppModel = await prisma.mLModel.findFirst({
+            where: { 
+                isActive: true,
+                NOT: {
+                    OR: [
+                        { id: { startsWith: 'sev_model_' } },
+                    ]
+                }
+            }
         });
         
-        if (activeModel) {
-            console.log(`\n当前激活的模型: ${activeModel.id}`);
+        const activeSevModel = await prisma.mLModel.findFirst({
+            where: { 
+                isActive: true,
+                OR: [
+                    { id: { startsWith: 'sev_model_' } },
+                ]
+            }
+        });
+        
+        if (activeAppModel) {
+            console.log(`\n当前激活的 Stage A 模型: ${activeAppModel.id}`);
         } else {
-            console.log(`\n警告: 没有激活的模型！`);
+            console.log(`\n警告: 没有激活的 Stage A 模型！`);
+        }
+        
+        if (activeSevModel) {
+            console.log(`当前激活的 Stage B 模型: ${activeSevModel.id} (始终激活)`);
+        } else {
+            console.log(`\n警告: 没有激活的 Stage B 模型！`);
         }
         
         console.log('\n' + '='.repeat(60));
@@ -167,24 +228,64 @@ async function registerModel(modelPath, modelId = null, activate = false) {
 }
 
 /**
- * 激活模型（停用其他所有模型）
+ * 激活模型（停用其他所有模型，但保留 Stage B 严重度模型激活）
  */
 async function activateModel(modelId) {
     console.log(`\n激活模型: ${modelId}`);
     
-    // 停用所有模型
-    await prisma.mLModel.updateMany({
-        where: { isActive: true },
-        data: { isActive: false }
+    // 检查是否是 Stage B 严重度模型
+    const targetModel = await prisma.mLModel.findUnique({
+        where: { id: modelId }
     });
     
-    // 激活指定模型
-    await prisma.mLModel.update({
-        where: { id: modelId },
-        data: { isActive: true }
-    });
+    if (!targetModel) {
+        throw new Error(`Model not found: ${modelId}`);
+    }
     
-    console.log(`模型 ${modelId} 已激活`);
+    const metadata = targetModel.metadata || {};
+    const isSeverityModel = metadata.model_function === 'severity' || 
+                           modelId.startsWith('sev_model_');
+    
+    if (isSeverityModel) {
+        // Stage B 严重度模型：只确保它激活，不停用其他模型
+        await prisma.mLModel.update({
+            where: { id: modelId },
+            data: { isActive: true }
+        });
+        console.log(`Stage B 严重度模型 ${modelId} 已激活（保持激活状态）`);
+    } else {
+        // Stage A 适用性模型：停用其他 Stage A 模型，但保留 Stage B 模型激活
+        await prisma.mLModel.updateMany({
+            where: { 
+                isActive: true,
+                // 排除 Stage B 严重度模型
+                NOT: {
+                    OR: [
+                        { id: { startsWith: 'sev_model_' } },
+                    ]
+                }
+            },
+            data: { isActive: false }
+        });
+        
+        // 确保所有 Stage B 严重度模型保持激活
+        await prisma.mLModel.updateMany({
+            where: {
+                OR: [
+                    { id: { startsWith: 'sev_model_' } },
+                ]
+            },
+            data: { isActive: true }
+        });
+        
+        // 激活指定模型
+        await prisma.mLModel.update({
+            where: { id: modelId },
+            data: { isActive: true }
+        });
+        
+        console.log(`模型 ${modelId} 已激活`);
+    }
 }
 
 // 主函数

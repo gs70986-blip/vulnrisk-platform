@@ -34,40 +34,33 @@
               {{ prediction.sampleId }}
             </el-descriptions-item>
             
-            <!-- High-Severity Similarity (Raw) -->
-            <el-descriptions-item label="High-Severity Similarity (Raw)">
+            <!-- Applicability -->
+            <el-descriptions-item label="Applicability">
               <div style="display: flex; align-items: center; gap: 8px">
-                <el-progress
-                  :percentage="(effectivePVulnRaw * 100)"
-                  :color="getRiskColor(effectivePVulnRaw)"
-                  :stroke-width="20"
-                />
-                <span>{{ formatPercent(effectivePVulnRaw) }}</span>
-                <el-tag v-if="prediction.isClipped" type="warning" size="small">
-                  Low Confidence
+                <el-tag :type="prediction.applicable ? 'success' : 'info'" size="large">
+                  {{ prediction.applicable ? 'Applicable' : 'Not Applicable' }}
                 </el-tag>
-                <el-tag v-else-if="effectiveReliability === 'Low'" type="warning" size="small">
-                  Clipped
-                </el-tag>
+                <span v-if="prediction.pApplicable !== null && prediction.pApplicable !== undefined">
+                  ({{ formatPercent(prediction.pApplicable) }})
+                </span>
+                <el-tooltip 
+                  content="Probability that the input text is vulnerability-related / information-sufficient."
+                  placement="top"
+                >
+                  <el-icon style="cursor: help; color: #909399;"><QuestionFilled /></el-icon>
+                </el-tooltip>
               </div>
             </el-descriptions-item>
 
-            <!-- Reliability Badge -->
-            <el-descriptions-item label="Reliability">
-              <el-tag :type="getReliabilityTagType(effectiveReliability)" size="large">
-                {{ effectiveReliability }}
+            <!-- Severity Level -->
+            <el-descriptions-item v-if="shouldShowSeverityInfo" label="Severity Level">
+              <el-tag :type="getRiskTagType(displayRiskLevel)" size="large">
+                {{ displayRiskLevel }}
               </el-tag>
             </el-descriptions-item>
-
-            <el-descriptions-item label="CVSS Base Score">
-              {{
-                prediction.cvss !== null && prediction.cvss !== undefined
-                  ? prediction.cvss.toFixed(2)
-                  : 'N/A'
-              }}
-            </el-descriptions-item>
             
-            <el-descriptions-item label="Risk Score">
+            <!-- Risk Score (Reference) -->
+            <el-descriptions-item v-if="shouldShowSeverityInfo" label="Risk Score (Reference)">
               <el-progress
                 :percentage="(prediction.riskScore || 0) * 100"
                 :color="getRiskColor(prediction.riskScore || 0)"
@@ -76,17 +69,31 @@
               {{ formatRiskScore(prediction.riskScore) }}
             </el-descriptions-item>
             
+            <!-- Risk Level -->
             <el-descriptions-item label="Risk Level">
-              <el-tag :type="getRiskTagType(effectiveRiskLevel)" size="large">
-                {{ effectiveRiskLevel }}
+              <el-tag :type="getRiskTagType(displayRiskLevel)" size="large">
+                {{ displayRiskLevel }}
               </el-tag>
-              <span v-if="effectiveRiskLevel === 'Unknown'" style="margin-left: 8px; color: #909399; font-size: 12px">
+              <span v-if="displayRiskLevel === 'Unknown' || displayRiskLevel === 'N/A'" style="margin-left: 8px; color: #909399; font-size: 12px">
                 (Severity estimation uncertain)
               </span>
             </el-descriptions-item>
+
+            <!-- Reliability Badge -->
+            <el-descriptions-item label="Reliability">
+              <el-tag :type="getReliabilityTagType(effectiveReliability)" size="large">
+                {{ effectiveReliability }}
+              </el-tag>
+            </el-descriptions-item>
             
             <el-descriptions-item label="Model">
-              {{ prediction.model?.type || 'N/A' }}
+              <div v-if="prediction.severityProbs && prediction.modelInfo">
+                <div>Severity Model: {{ getModelName(prediction.modelInfo.severityModel) }}</div>
+                <div style="font-size: 12px; color: #909399; margin-top: 4px">
+                  Applicability Model: {{ getModelName(prediction.modelInfo.applicabilityModel) }}
+                </div>
+              </div>
+              <span v-else>{{ prediction.model?.type || 'N/A' }}</span>
             </el-descriptions-item>
             
             <el-descriptions-item label="Created At">
@@ -140,9 +147,24 @@
         </el-col>
       </el-row>
 
-      <!-- Evidence in Text -->
-      <el-divider>Evidence in Text</el-divider>
+      <!-- Severity Probability Distribution -->
+      <el-divider v-if="shouldShowSeverityInfo && prediction.severityProbs">Severity Probability Distribution</el-divider>
+      <el-card v-if="shouldShowSeverityInfo && prediction.severityProbs">
+        <div style="height: 300px">
+          <v-chart :option="severityChartOption" style="height: 100%" />
+        </div>
+        <el-text type="info" size="small" style="display: block; margin-top: 12px; text-align: center">
+          This distribution represents the learned probability estimates for each severity level, 
+          conditional on the input being vulnerability-related. The predicted severity level is determined by the highest probability.
+        </el-text>
+      </el-card>
+
+      <!-- Keyword Indicators (Heuristic) -->
+      <el-divider>Keyword Indicators (Heuristic)</el-divider>
       <el-card>
+        <el-text type="info" size="small" style="display: block; margin-bottom: 12px; font-style: italic">
+          Extracted via rule-based matching, not a model explanation
+        </el-text>
         <div v-if="riskEvidence.hasEvidence">
           <div style="margin-bottom: 16px">
             <el-text type="primary" style="font-weight: bold; margin-right: 12px">
@@ -217,10 +239,14 @@
         <el-collapse-item title="Method Note" name="method">
           <div style="line-height: 1.8">
             <el-text>
-              <strong>Assessment Methodology:</strong><br />
-              This system predicts risk severity based on text similarity to training data, not vulnerability detection.
-              The <code>pVulnRaw</code> value represents statistical similarity to high-severity samples in the training corpus,
-              not the actual probability of a vulnerability existing.<br /><br />
+              <strong>Two-Stage Assessment Methodology:</strong><br />
+              <strong>Stage A</strong> determines applicability (whether the input text is vulnerability-related and enters risk assessment).<br />
+              <strong>Stage B</strong> predicts severity distribution (Low/Medium/High/Critical) for applicable inputs, conditional on Stage A passing.<br /><br />
+              
+              <strong>Risk Assessment Semantics:</strong><br />
+              The risk assessment is conditional on applicability. The severity probability distribution represents learned patterns 
+              for prioritization under uncertainty, not definitive vulnerability existence. The risk score is a reference estimate 
+              for prioritization purposes.<br /><br />
               
               <strong>Reliability Considerations:</strong><br />
               When input text lacks detailed exploitability or impact information, or shows low similarity to training data,
@@ -228,8 +254,7 @@
               may require manual review.<br /><br />
               
               <strong>Limitations:</strong><br />
-              This system is designed for risk assessment and prioritization, not for definitive vulnerability detection.
-              Always perform manual security review for critical systems.
+              This system does not compute official CVSS scores. Always perform manual security review for critical systems.
             </el-text>
           </div>
         </el-collapse-item>
@@ -244,9 +269,33 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import { QuestionFilled } from '@element-plus/icons-vue'
+import { use } from 'echarts/core'
+import { CanvasRenderer } from 'echarts/renderers'
+import { BarChart } from 'echarts/charts'
+import {
+  TitleComponent,
+  TooltipComponent,
+  LegendComponent,
+  GridComponent,
+} from 'echarts/components'
+import VChart from 'vue-echarts'
 import { predictionApi, modelApi, type Prediction, type MLModel } from '../services/api'
 import { extractRiskEvidence, type RiskEvidenceResult } from '../services/riskEvidence'
 import { getRiskTypeColor } from '../config/riskTaxonomy'
+import { 
+  getDisplayRiskLevel, 
+  getDisplayHighRiskProb 
+} from '../utils/predictionMapper'
+
+use([
+  CanvasRenderer,
+  BarChart,
+  TitleComponent,
+  TooltipComponent,
+  LegendComponent,
+  GridComponent,
+])
 
 const route = useRoute()
 const prediction = ref<Prediction | null>(null)
@@ -285,6 +334,34 @@ const effectiveRiskLevel = computed(() => {
   const level = prediction.value?.riskLevel || 'Unknown'
   return level === 'N/A' ? 'Unknown' : level
 })
+
+const displayRiskLevel = computed(() => {
+  if (!prediction.value) return 'N/A'
+  return getDisplayRiskLevel(prediction.value)
+})
+
+const effectiveHighRiskProb = computed(() => {
+  if (!prediction.value) return 0
+  const highRiskProb = getDisplayHighRiskProb(prediction.value)
+  if (highRiskProb !== null) return highRiskProb
+  // Fallback to pVulnRaw or pVuln
+  return effectivePVulnRaw.value
+})
+
+const getSeverityColor = (level: string) => {
+  switch (level) {
+    case 'Critical':
+      return '#f56c6c'
+    case 'High':
+      return '#e6a23c'
+    case 'Medium':
+      return '#f0c020'
+    case 'Low':
+      return '#67c23a'
+    default:
+      return '#909399'
+  }
+}
 
 const loadReport = async () => {
   const id = route.params.id as string
@@ -341,6 +418,84 @@ const getReliabilityTagType = (reliability: string) => {
 const formatDate = (dateStr: string) => {
   return new Date(dateStr).toLocaleString()
 }
+
+// 判断是否应该显示严重度信息
+const shouldShowSeverityInfo = computed(() => {
+  if (!prediction.value) return false
+  const applicable = prediction.value.applicable !== false
+  const riskLevel = displayRiskLevel.value
+  return applicable && riskLevel !== 'N/A' && riskLevel !== 'Unknown'
+})
+
+// 从模型路径提取模型名称
+const getModelName = (modelPath: string | null | undefined): string => {
+  if (!modelPath) return 'N/A'
+  // 从路径中提取模型名称，例如 "models/app_model_001_xgb" -> "app_model_001_xgb"
+  const parts = modelPath.split('/')
+  return parts[parts.length - 1] || modelPath
+}
+
+// 严重度概率分布图表配置
+const severityChartOption = computed(() => {
+  if (!prediction.value?.severityProbs) {
+    return {}
+  }
+  
+  const probs = prediction.value.severityProbs
+  const levels = ['Low', 'Medium', 'High', 'Critical']
+  const colors = ['#67c23a', '#f0c020', '#e6a23c', '#f56c6c']
+  
+  return {
+    tooltip: {
+      trigger: 'axis',
+      axisPointer: {
+        type: 'shadow'
+      },
+      formatter: (params: any) => {
+        const param = params[0]
+        return `${param.name}<br/>${param.seriesName}: ${(param.value * 100).toFixed(2)}%`
+      }
+    },
+    grid: {
+      left: '3%',
+      right: '4%',
+      bottom: '3%',
+      containLabel: true
+    },
+    xAxis: {
+      type: 'category',
+      data: levels,
+      axisLabel: {
+        fontWeight: 'bold'
+      }
+    },
+    yAxis: {
+      type: 'value',
+      min: 0,
+      max: 1,
+      axisLabel: {
+        formatter: (value: number) => (value * 100).toFixed(0) + '%'
+      }
+    },
+    series: [
+      {
+        name: 'Probability',
+        type: 'bar',
+        data: levels.map((level, index) => ({
+          value: probs[level as keyof typeof probs] || 0,
+          itemStyle: {
+            color: colors[index]
+          }
+        })),
+        label: {
+          show: true,
+          position: 'top',
+          formatter: (params: any) => (params.value * 100).toFixed(1) + '%'
+        }
+      }
+    ]
+  }
+})
 
 onMounted(() => {
   loadReport()

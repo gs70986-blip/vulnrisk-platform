@@ -1,0 +1,264 @@
+{
+  "samples": [
+    {
+      "sample_id": "POS-001",
+      "text_description": "A remote code execution vulnerability exists in the web application's file upload handler. An attacker can upload a malicious script file and execute arbitrary commands on the server by manipulating the file extension validation logic."
+    },
+    {
+      "sample_id": "POS-002",
+      "text_description": "SQL injection vulnerability in the user authentication module allows unauthorized database access. Attackers can bypass login credentials by injecting malicious SQL queries through the username parameter, potentially exposing sensitive user data."
+    },
+    {
+      "sample_id": "POS-003",
+      "text_description": "Cross-site scripting (XSS) vulnerability in the comment system enables attackers to inject malicious JavaScript code. When other users view the affected page, the script executes in their browser context, allowing session hijacking and credential theft."
+    },
+    {
+      "sample_id": "POS-004",
+      "text_description": "Path traversal vulnerability in the file download functionality allows remote attackers to read arbitrary files from the server filesystem. By manipulating the file path parameter, an attacker can access configuration files containing database credentials."
+    },
+    {
+      "sample_id": "POS-005",
+      "text_description": "Authentication bypass vulnerability exists due to improper session validation. An attacker can manipulate session tokens to gain unauthorized access to other users' accounts without providing valid credentials."
+    },
+    {
+      "sample_id": "POS-006",
+      "text_description": "XML external entity (XXE) injection vulnerability in the document parser allows remote attackers to read local files and perform server-side request forgery attacks. The parser processes external entity references without proper restrictions."
+    },
+    {
+      "sample_id": "POS-007",
+      "text_description": "Command injection vulnerability in the system administration interface enables remote code execution. Attackers can inject shell commands through the hostname parameter, allowing arbitrary command execution with elevated privileges."
+    },
+    {
+      "sample_id": "POS-008",
+      "text_description": "Information disclosure vulnerability in the API error handling mechanism leaks sensitive stack trace information. Attackers can trigger errors to expose internal file paths, database schema details, and application structure."
+    },
+    {
+      "sample_id": "POS-009",
+      "text_description": "Cross-site request forgery (CSRF) vulnerability allows attackers to perform unauthorized actions on behalf of authenticated users. By crafting malicious requests, an attacker can change user passwords or modify account settings without consent."
+    },
+    {
+      "sample_id": "POS-010",
+      "text_description": "Buffer overflow vulnerability in the network protocol handler can be exploited remotely to crash the service or execute arbitrary code. Attackers can send specially crafted packets that overflow the buffer and overwrite return addresses."
+    },
+    {
+      "sample_id": "POS-011",
+      "text_description": "Insecure deserialization vulnerability in the session management system allows remote code execution. Attackers can craft malicious serialized objects that execute arbitrary code when deserialized by the application server."
+    },
+    {
+      "sample_id": "POS-012",
+      "text_description": "Server-side request forgery (SSRF) vulnerability enables attackers to make requests to internal network resources. By manipulating URL parameters, an attacker can access internal services, read local files, or perform port scanning."
+    },
+    {
+      "sample_id": "POS-013",
+      "text_description": "Privilege escalation vulnerability exists in the role-based access control implementation. Regular users can modify their role assignments through a flawed permission check, gaining administrative privileges without authorization."
+    },
+    {
+      "sample_id": "POS-014",
+      "text_description": "Open redirect vulnerability allows attackers to redirect users to malicious websites after authentication. By manipulating the redirect URL parameter, an attacker can perform phishing attacks and steal user credentials."
+    },
+    {
+      "sample_id": "POS-015",
+      "text_description": "Denial of service (DoS) vulnerability in the resource allocation mechanism allows attackers to exhaust server memory. By sending specially crafted requests, an attacker can cause the application to consume excessive resources and become unresponsive."
+    },
+    {
+      "sample_id": "NEG-001",
+      "text_description": "The login button does not respond when clicked on mobile devices. Users report that tapping the button multiple times has no effect, making it impossible to authenticate on smartphones."
+    },
+    {
+      "sample_id": "NEG-002",
+      "text_description": "The application crashes when processing large CSV files with more than 10000 rows. The error occurs during file parsing and results in an unhandled exception that terminates the process."
+    },
+    {
+      "sample_id": "NEG-003",
+      "text_description": "The documentation page contains several typos and grammatical errors. The user guide section needs proofreading and correction to improve readability and accuracy."
+    },
+    {
+      "sample_id": "NEG-004",
+      "text_description": "The build process fails intermittently on the CI server. Sometimes the tests pass and sometimes they fail with timeout errors, making the deployment pipeline unreliable."
+    },
+    {
+      "sample_id": "NEG-005",
+      "text_description": "The database query performance is slow when retrieving user profiles. Queries take over 5 seconds to complete, causing noticeable delays in the user interface."
+    },
+    {
+      "sample_id": "NEG-006",
+      "text_description": "The application does not remember user preferences after browser refresh. Settings like theme selection and language preference are reset to default values."
+    },
+    {
+      "sample_id": "NEG-007",
+      "text_description": "The codebase has inconsistent coding style with mixed indentation and variable naming conventions. A refactoring pass is needed to standardize the code format."
+    },
+    {
+      "sample_id": "NEG-008",
+      "text_description": "The email notification system fails to send messages when the SMTP server is temporarily unavailable. Users do not receive important alerts during server outages."
+    },
+    {
+      "sample_id": "NEG-009",
+      "text_description": "The search functionality returns incorrect results when using special characters. Searching for terms with parentheses or quotes produces empty result sets."
+    },
+    {
+      "sample_id": "NEG-010",
+      "text_description": "The application displays incorrect timestamps in different time zones. Events show wrong dates and times when viewed by users in various geographic locations."
+    },
+    {
+      "sample_id": "NEG-011",
+      "text_description": "The dependency installation fails on Windows systems due to path length limitations. The npm package manager cannot install packages with deeply nested directory structures."
+    },
+    {
+      "sample_id": "NEG-012",
+      "text_description": "The user interface layout breaks on smaller screen sizes. Elements overlap and become unreadable when the browser window is resized below 1024 pixels width."
+    },
+    {
+      "sample_id": "NEG-013",
+      "text_description": "The application logs excessive debug information to the console in production. This creates performance overhead and makes log files difficult to read and analyze."
+    },
+    {
+      "sample_id": "NEG-014",
+      "text_description": "The database migration script fails when run on PostgreSQL version 12. The syntax used is only compatible with newer database versions, causing deployment failures."
+    },
+    {
+      "sample_id": "NEG-015",
+      "text_description": "The application does not handle network timeouts gracefully. When the API server is slow to respond, the frontend becomes unresponsive and requires a page refresh."
+    },
+    {
+      "sample_id": "NEG-016",
+      "text_description": "The file upload feature accepts files larger than the configured limit. Users can upload 50MB files even though the maximum size is set to 10MB in the configuration."
+    },
+    {
+      "sample_id": "NEG-017",
+      "text_description": "The application displays error messages with technical stack traces to end users. These messages are confusing and should be replaced with user-friendly error descriptions."
+    },
+    {
+      "sample_id": "NEG-018",
+      "text_description": "The caching mechanism does not invalidate entries when data is updated. Users see stale information until the cache expires, leading to inconsistent application state."
+    },
+    {
+      "sample_id": "NEG-019",
+      "text_description": "The application requires manual database index creation for optimal query performance. The automated migration process does not include index definitions for new tables."
+    },
+    {
+      "sample_id": "NEG-020",
+      "text_description": "The unit tests have high false positive rates due to timing dependencies. Tests pass or fail randomly depending on system load, making the test suite unreliable."
+    },
+    {
+      "sample_id": "AUG-NOISE-001",
+      "text_description": "hello hello, nice to meet you"
+    },
+    {
+      "sample_id": "AUG-NOISE-002",
+      "text_description": "test test test test test"
+    },
+    {
+      "sample_id": "AUG-NOISE-003",
+      "text_description": "INFO: application started successfully"
+    },
+    {
+      "sample_id": "AUG-NOISE-004",
+      "text_description": "today is a beautiful day outside"
+    },
+    {
+      "sample_id": "AUG-NOISE-005",
+      "text_description": "lorem ipsum dolor sit amet consectetur adipiscing elit"
+    },
+    {
+      "sample_id": "AUG-NOISE-006",
+      "text_description": "DEBUG: processing request with id 12345"
+    },
+    {
+      "sample_id": "AUG-NOISE-007",
+      "text_description": "thank you very much for your time"
+    },
+    {
+      "sample_id": "AUG-NOISE-008",
+      "text_description": "error error error error error"
+    },
+    {
+      "sample_id": "AUG-NOISE-009",
+      "text_description": "exception in thread main java lang nullpointerexception"
+    },
+    {
+      "sample_id": "AUG-NOISE-010",
+      "text_description": "random words in a sentence format"
+    },
+    {
+      "sample_id": "AUG-KW-001",
+      "text_description": "TODAY IS A GOOD DAY XSS"
+    },
+    {
+      "sample_id": "AUG-KW-002",
+      "text_description": "this is a test for sql injection"
+    },
+    {
+      "sample_id": "AUG-KW-003",
+      "text_description": "checking rce functionality"
+    },
+    {
+      "sample_id": "AUG-KW-004",
+      "text_description": "working on csrf implementation"
+    },
+    {
+      "sample_id": "AUG-KW-005",
+      "text_description": "discussing buffer overflow in meeting"
+    },
+    {
+      "sample_id": "AUG-KW-006",
+      "text_description": "learning about command injection concepts"
+    },
+    {
+      "sample_id": "AUG-KW-007",
+      "text_description": "reading documentation about path traversal"
+    },
+    {
+      "sample_id": "AUG-KW-008",
+      "text_description": "planning xxe feature development"
+    },
+    {
+      "sample_id": "AUG-KW-009",
+      "text_description": "considering ssrf as option"
+    },
+    {
+      "sample_id": "AUG-KW-010",
+      "text_description": "introduction to privilege escalation"
+    },
+    {
+      "sample_id": "AUG-PATCH-001",
+      "text_description": "Fix: Prevent command injection by sanitizing user input. Added input validation to block malicious payloads and escape special characters."
+    },
+    {
+      "sample_id": "AUG-PATCH-002",
+      "text_description": "Security: Implemented CSRF token validation to prevent cross-site request forgery attacks. All state-changing requests now require valid tokens."
+    },
+    {
+      "sample_id": "AUG-PATCH-003",
+      "text_description": "Patch: Added output encoding to mitigate XSS vulnerabilities. User-generated content is now properly escaped before rendering in HTML."
+    },
+    {
+      "sample_id": "AUG-PATCH-004",
+      "text_description": "Hotfix: Escaped SQL queries using parameterized statements to prevent SQL injection. Database interactions now use prepared statements exclusively."
+    },
+    {
+      "sample_id": "AUG-PATCH-005",
+      "text_description": "Fix: Validated file upload paths to prevent directory traversal. Added path normalization and whitelist validation for allowed directories."
+    },
+    {
+      "sample_id": "AUG-PATCH-006",
+      "text_description": "Security: Hardened session management to prevent session fixation. Implemented session regeneration on authentication and secure cookie flags."
+    },
+    {
+      "sample_id": "AUG-PATCH-007",
+      "text_description": "Patch: Added rate limiting to prevent brute force attacks. Login attempts are now throttled after multiple failed authentication requests."
+    },
+    {
+      "sample_id": "AUG-PATCH-008",
+      "text_description": "Fix: Sanitized XML input to prevent XXE attacks. Disabled external entity processing and restricted XML parser configuration."
+    },
+    {
+      "sample_id": "AUG-PATCH-009",
+      "text_description": "Security: Implemented input whitelist validation to block malicious payloads. Only predefined safe values are accepted for critical parameters."
+    },
+    {
+      "sample_id": "AUG-PATCH-010",
+      "text_description": "Hotfix: Added output sanitization to prevent stored XSS. User content is escaped and validated before being stored in the database."
+    }
+  ]
+

@@ -10,6 +10,7 @@ models/
 __pycache__/
 .vscode/
 .idea/
+ml-service/negative_github_issues.csv
 
 
 

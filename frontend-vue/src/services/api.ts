@@ -75,14 +75,33 @@ export interface Prediction {
   modelId: string
   sampleId: string
   textDescription?: string
-  pVuln: number
+  // 旧字段（兼容）
+  pVuln?: number | null
   pVulnRaw?: number  // 新增：原始预测值
   isClipped?: boolean  // 新增：是否被裁剪
   reliability?: 'High' | 'Medium' | 'Low'  // 新增：可靠性
   warnings?: string[]  // 新增：警告信息
-  cvss?: number
-  riskScore: number
-  riskLevel: string
+  cvss?: number | null
+  riskScore?: number | null
+  riskLevel?: string | null
+  // 新字段（两阶段模型）
+  pApplicable?: number | null
+  applicable?: boolean | null
+  severityLevel?: string | null
+  severityProbs?: {
+    Low?: number
+    Medium?: number
+    High?: number
+    Critical?: number
+  } | null
+  // 系统级处理字段
+  reliability?: 'High' | 'Medium' | 'Low'
+  notes?: string[] | null
+  inputType?: 'normal' | 'patch_mitigation' | 'low_quality'
+  modelInfo?: {
+    applicabilityModel?: string
+    severityModel?: string
+  }
   createdAt: string
   model?: {
     id: string

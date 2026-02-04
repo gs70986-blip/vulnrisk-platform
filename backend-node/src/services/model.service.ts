@@ -64,13 +64,21 @@ export class ModelService {
   }
 
   async getModels() {
-    return prisma.mLModel.findMany({
+    const allModels = await prisma.mLModel.findMany({
       orderBy: { createdAt: 'desc' },
       include: {
         _count: {
           select: { predictions: true },
         },
       },
+    });
+
+    // 过滤掉 Stage B 严重度模型（不在前端显示）
+    return allModels.filter(model => {
+      const metadata = model.metadata as any;
+      const isSeverityModel = metadata?.model_function === 'severity' || 
+                             model.id.startsWith('sev_model_');
+      return !isSeverityModel;
     });
   }
 
@@ -86,10 +94,47 @@ export class ModelService {
   }
 
   async activateModel(id: string) {
-    // Deactivate all other models first
+    // 检查要激活的模型是否是 Stage B 严重度模型
+    const targetModel = await prisma.mLModel.findUnique({
+      where: { id },
+    });
+
+    if (!targetModel) {
+      throw new Error(`Model not found: ${id}`);
+    }
+
+    // 检查是否是 Stage B 严重度模型（通过 metadata.model_function 或 id 判断）
+    const metadata = targetModel.metadata as any;
+    const isSeverityModel = metadata?.model_function === 'severity' || 
+                           targetModel.id.startsWith('sev_model_');
+
+    if (isSeverityModel) {
+      throw new Error('Severity models (Stage B) cannot be activated/deactivated manually. They are always active.');
+    }
+
+    // Deactivate all other models first (但保留 Stage B 严重度模型激活)
     await prisma.mLModel.updateMany({
-      where: { isActive: true },
+      where: { 
+        isActive: true,
+        // 排除 Stage B 严重度模型
+        NOT: {
+          OR: [
+            { id: { startsWith: 'sev_model_' } },
+            // 也可以通过 metadata 判断
+          ]
+        }
+      },
       data: { isActive: false },
+    });
+
+    // 同时确保所有 Stage B 严重度模型保持激活
+    await prisma.mLModel.updateMany({
+      where: {
+        OR: [
+          { id: { startsWith: 'sev_model_' } },
+        ]
+      },
+      data: { isActive: true },
     });
 
     // Activate the selected model
@@ -100,8 +145,29 @@ export class ModelService {
   }
 
   async getActiveModel() {
+    // 获取激活的 Stage A 模型（适用性模型）
     return prisma.mLModel.findFirst({
-      where: { isActive: true },
+      where: { 
+        isActive: true,
+        // 排除 Stage B 严重度模型
+        NOT: {
+          OR: [
+            { id: { startsWith: 'sev_model_' } },
+          ]
+        }
+      },
+    });
+  }
+
+  async getActiveSeverityModel() {
+    // 获取激活的 Stage B 严重度模型（应该始终有一个激活）
+    return prisma.mLModel.findFirst({
+      where: { 
+        isActive: true,
+        OR: [
+          { id: { startsWith: 'sev_model_' } },
+        ]
+      },
     });
   }
 }

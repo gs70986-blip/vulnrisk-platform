@@ -1,0 +1,19 @@
+{
+  "random_seed": 42,
+  "generation_date": "2026-02-04T22:52:34.868054",
+  "datasets": {
+    "neg_noise": {
+      "count": 1200,
+      "file": "C:\\Users\\10944\\Desktop\\Project\\ml-service\\data_aug\\neg_noise.csv"
+    },
+    "neg_keyword_only": {
+      "count": 1200,
+      "file": "C:\\Users\\10944\\Desktop\\Project\\ml-service\\data_aug\\neg_keyword_only.csv"
+    },
+    "neg_patch_mitigation": {
+      "count": 1200,
+      "file": "C:\\Users\\10944\\Desktop\\Project\\ml-service\\data_aug\\neg_patch_mitigation.csv"
+    }
+  },
+  "total_samples": 3600
+}

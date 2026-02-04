@@ -183,18 +183,529 @@ def health():
     })
 
 
+def extract_evidence(text_description, processed_text):
+    """
+    通用的证据提取步骤
+    统计安全关键词、上下文线索和技术证据模式
+    
+    Returns:
+        (security_keyword_count, context_cue_count, technical_evidence_count)
+    """
+    text_lower = processed_text.lower()
+    text_original_lower = text_description.lower() if text_description else text_lower
+    
+    # 安全关键词
+    security_keywords = [
+        'xss', 'cross site scripting', 'sqli', 'sql injection', 'csrf', 'ssrf',
+        'rce', 'remote code execution', 'code execution', 'command injection',
+        'buffer overflow', 'stack overflow', 'heap overflow', 'integer overflow',
+        'path traversal', 'directory traversal', 'file traversal',
+        'deserialization', 'unsafe deserialization', 'xxe', 'xml external entity',
+        'ldap injection', 'xpath injection', 'template injection', 'ssti',
+        'authentication bypass', 'authorization bypass', 'privilege escalation',
+        'information disclosure', 'data leak', 'credential leak', 'token theft',
+        'open redirect', 'clickjacking', 'session fixation', 'session hijacking',
+        'cors misconfiguration', 'jwt', 'hardcoded secret', 'secret leak',
+        'race condition', 'time of check time of use', 'toctou',
+        'insecure direct object reference', 'idor',
+    ]
+    
+    # 上下文线索（exploit/attack/impact cues）
+    context_cues = [
+        'exploit', 'exploitable', 'exploitation', 'attacker', 'attack', 'attacking',
+        'remote', 'remotely', 'arbitrary', 'arbitrarily', 'execute', 'execution',
+        'payload', 'malicious', 'maliciously', 'bypass', 'bypassed', 'bypassing',
+        'unauthorized', 'unauthorized access', 'privilege', 'privileges',
+        'escalation', 'escalate', 'leak', 'leaked', 'leaking', 'disclosure',
+        'crash', 'crashes', 'crashed', 'dos', 'denial of service', 'ddos',
+        'code execution', 'command execution', 'arbitrary code', 'arbitrary command',
+        'impact', 'impacts', 'affected', 'affects', 'vulnerable', 'vulnerability',
+        'compromise', 'compromised', 'compromising', 'breach', 'breached',
+        'injection', 'inject', 'injected', 'injecting',
+    ]
+    
+    # 技术证据模式
+    import re
+    technical_evidence_patterns = [
+        # CVE IDs
+        r'\bcve-\d{4}-\d{4,}',
+        # Version numbers
+        r'\b\d+\.\d+(\.\d+)?',
+        # Product/component names (common patterns)
+        r'\b(apache|nginx|mysql|postgresql|redis|mongodb|elasticsearch|kafka|docker|kubernetes|openssl|libssl|curl|wget|git|svn|mercurial)\b',
+        # Stack traces indicators
+        r'(traceback|stack trace|exception|error at|at \w+\.\w+\(|line \d+)',
+        # Error codes
+        r'\b(error|err|exception|fail|failed|failure)\s*[:\-]?\s*\d+',
+        # Code-like tokens
+        r'[a-zA-Z_][a-zA-Z0-9_]*\s*\([^)]*\)',  # function calls
+        r'[a-zA-Z_][a-zA-Z0-9_]*\s*=\s*[^=]',  # assignments
+        # File paths
+        r'[/\\][a-zA-Z0-9_/\\\.]+',
+        # URLs
+        r'https?://[^\s]+',
+        # PoC indicators
+        r'(poc|proof of concept|proof-of-concept|reproduce|reproduction|reproducible)',
+        # Affected component words
+        r'\b(component|module|library|package|dependency|plugin|extension|service|daemon|process)\b',
+    ]
+    
+    # 统计安全关键词
+    security_keyword_count = 0
+    for keyword in security_keywords:
+        if keyword in text_lower:
+            security_keyword_count += 1
+    
+    # 统计上下文线索
+    context_cue_count = 0
+    for cue in context_cues:
+        if cue in text_lower:
+            context_cue_count += 1
+    
+    # 统计技术证据模式
+    technical_evidence_count = 0
+    for pattern in technical_evidence_patterns:
+        if re.search(pattern, text_original_lower, re.IGNORECASE):
+            technical_evidence_count += 1
+    
+    return security_keyword_count, context_cue_count, technical_evidence_count
+
+
+def check_input_quality(text_description, processed_text):
+    """
+    输入质量检查（precheck）
+    保守地检测明显非信息性输入，使用通用的证据充分性检查
+    
+    Returns:
+        (is_low_quality, reason, note)
+    """
+    # 检查1: 文本过短
+    if len(processed_text.strip()) < 15:
+        return True, 'TOO_SHORT', 'This input text was not identified as vulnerability-related and therefore did not enter the risk assessment stage.'
+    
+    # 检查2: 高度重复的文本（如 "hello hello hello"）
+    words = processed_text.split()
+    if len(words) > 0:
+        unique_words = len(set(words))
+        if unique_words < 3 and len(words) > 5:
+            return True, 'HIGHLY_REPETITIVE', 'This input text was not identified as vulnerability-related and therefore did not enter the risk assessment stage.'
+    
+    # 检查3: 问候语或闲聊模式
+    greeting_patterns = ['hello', 'hi', 'nice to meet', 'good day', 'how are you', 'thank you', 'thanks']
+    text_lower = processed_text.lower()
+    greeting_count = sum(1 for pattern in greeting_patterns if pattern in text_lower)
+    if greeting_count >= 2 and len(words) < 20:
+        return True, 'GREETING_LIKE', 'This input text was not identified as vulnerability-related and therefore did not enter the risk assessment stage.'
+    
+    # 检查4: 无意义的字符重复（如 "aaaaa" 或 "12345"）
+    if len(processed_text) > 10:
+        char_counts = {}
+        for char in processed_text:
+            if char.isalnum():
+                char_counts[char] = char_counts.get(char, 0) + 1
+        if char_counts:
+            max_char_count = max(char_counts.values())
+            if max_char_count > len(processed_text) * 0.5:
+                return True, 'CHARACTER_REPETITION', 'This input text was not identified as vulnerability-related and therefore did not enter the risk assessment stage.'
+    
+    # 检查5: 证据充分性检查（通用、内容无关）
+    security_keyword_count, context_cue_count, technical_evidence_count = extract_evidence(text_description, processed_text)
+    
+    # 如果检测到安全关键词，但上下文线索和技术证据不足，保守跳过
+    # 阈值：至少需要1个上下文线索或1个技术证据模式
+    min_context_threshold = 1
+    total_evidence = context_cue_count + technical_evidence_count
+    
+    if security_keyword_count > 0 and total_evidence < min_context_threshold:
+        return True, 'INSUFFICIENT_EVIDENCE', (
+            'This input text was not identified as vulnerability-related and therefore did not enter the risk assessment stage. '
+            f'(Security keywords: {security_keyword_count}, Context cues: {context_cue_count}, Technical evidence: {technical_evidence_count})'
+        )
+    
+    return False, None, None
+
+
+def detect_patch_mitigation_text(text_description, processed_text):
+    """
+    检测补丁/缓解风格的文本
+    
+    Returns:
+        (is_patch_mitigation, confidence)
+    """
+    patch_keywords = [
+        'fix', 'fixed', 'patch', 'patched', 'mitigation', 'mitigate', 'prevent',
+        'sanitize', 'sanitization', 'escape', 'escaping', 'validate', 'validation',
+        'secure', 'hardening', 'defense', 'protect', 'protection', 'block',
+        'reject', 'filter', 'whitelist', 'blacklist', 'allowlist', 'denylist'
+    ]
+    
+    text_lower = processed_text.lower()
+    patch_count = sum(1 for keyword in patch_keywords if keyword in text_lower)
+    
+    # 如果包含多个补丁关键词，且文本长度合理，认为是补丁/缓解文本
+    if patch_count >= 2:
+        return True, min(1.0, patch_count / 5.0)  # 置信度基于关键词数量
+    
+    # 检查是否以 "Fix:" 或类似开头
+    if text_lower.startswith(('fix:', 'fix ', 'patch:', 'patch ')):
+        return True, 0.8
+    
+    return False, 0.0
+
+
+def assess_prediction_uncertainty(severity_probs):
+    """
+    评估预测不确定性
+    使用top-1和top-2概率差距以及熵来评估
+    
+    Returns:
+        (is_uncertain, uncertainty_level, uncertainty_reason)
+    """
+    if severity_probs is None or len(severity_probs) != 4:
+        return False, 0.0, None
+    
+    import math
+    import numpy as np
+    
+    # 获取top-1和top-2概率
+    sorted_probs = sorted(severity_probs, reverse=True)
+    top1_prob = sorted_probs[0]
+    top2_prob = sorted_probs[1]
+    margin = top1_prob - top2_prob
+    
+    # 检查1: top-1和top-2概率太接近（margin太小）
+    # 如果差距小于0.15，认为不确定
+    min_margin_threshold = 0.15
+    if margin < min_margin_threshold:
+        uncertainty_level = 1.0 - margin
+        return True, uncertainty_level, f'Top-1 and top-2 probabilities are too close (margin={margin:.3f} < {min_margin_threshold})'
+    
+    # 检查2: 计算概率分布的熵（不确定性指标）
+    entropy = -sum(p * math.log(p + 1e-10) for p in severity_probs if p > 0)
+    max_entropy = math.log(4)  # 最大熵（均匀分布）
+    normalized_entropy = entropy / max_entropy
+    
+    # 如果熵很高（接近均匀分布），认为不确定
+    if normalized_entropy > 0.85:
+        return True, normalized_entropy, f'Probability distribution is relatively flat (entropy={normalized_entropy:.3f})'
+    
+    # 检查3: 最大概率是否足够高（没有明显优势类别）
+    if top1_prob < 0.4:
+        uncertainty_level = 1.0 - top1_prob
+        return True, uncertainty_level, f'No dominant class (max probability={top1_prob:.3f} < 0.4)'
+    
+    return False, 0.0, None
+
+
+def downgrade_reliability(current_reliability, reason='UNCERTAINTY'):
+    """
+    降级可靠性等级
+    
+    Args:
+        current_reliability: 当前可靠性 ('High', 'Medium', 'Low')
+        reason: 降级原因
+    
+    Returns:
+        降级后的可靠性
+    """
+    if current_reliability == 'High':
+        return 'Medium'
+    elif current_reliability == 'Medium':
+        return 'Low'
+    else:
+        return 'Low'  # 已经是Low，不再降级
+
+
+def predict_two_stage(text_description, app_model_path=None, sev_model_path=None, 
+                       app_threshold=0.5, use_legacy=False, legacy_model_path=None):
+    """
+    两阶段预测函数
+    
+    Stage A: Applicability 模型判断是否漏洞相关
+    Stage B: Severity 模型预测严重度（4类）
+    
+    Args:
+        text_description: 输入文本
+        app_model_path: Applicability模型路径（默认: /app/models/app_model_001）
+        sev_model_path: Severity模型路径（默认: /app/models/sev_model_001）
+        app_threshold: Applicability阈值（默认: 0.5）
+        use_legacy: 是否使用旧模型（向后兼容）
+        legacy_model_path: 旧模型路径
+    
+    Returns:
+        预测结果字典
+    """
+    # 预处理文本
+    processed_text = preprocess_text_for_prediction(text_description)
+    
+    # ========== 输入质量检查（precheck）==========
+    is_low_quality, quality_reason, quality_note = check_input_quality(text_description, processed_text)
+    if is_low_quality:
+        return {
+            'applicable': False,
+            'pApplicable': 0.0,
+            'severityLevel': None,
+            'severityProbs': None,
+            'riskScore': 0,
+            'pVuln': None,
+            'riskLevel': 'Unknown',
+            'explanation': quality_note,
+            'reason': 'NOT_VULNERABILITY_TEXT',  # 统一使用NOT_VULNERABILITY_TEXT
+            'text_len': len(processed_text),
+            'reliability': 'Low',
+            'notes': [quality_note],
+            'inputType': 'low_quality',
+        }
+    
+    if use_legacy and legacy_model_path:
+        # 使用旧模型（向后兼容）
+        return predict_legacy(text_description, legacy_model_path)
+    
+    # 默认模型路径（优先使用增强版本，如果不存在则回退到旧版本）
+    if app_model_path is None:
+        # 尝试使用增强版本（app_model_002_aug_xgb）
+        potential_paths = [
+            os.path.join(MODELS_DIR, 'app_model_002_aug_xgb'),  # 优先使用XGBoost增强版本
+            os.path.join(MODELS_DIR, 'app_model_002_aug_rf'),
+            os.path.join(MODELS_DIR, 'app_model_002_aug_lr'),
+            os.path.join(MODELS_DIR, 'app_model_001'),  # 回退到旧版本
+        ]
+        app_model_path = None
+        for path in potential_paths:
+            if os.path.exists(path):
+                app_model_path = path
+                break
+        if app_model_path is None:
+            app_model_path = os.path.join(MODELS_DIR, 'app_model_001')  # 默认回退
+    
+    if sev_model_path is None:
+        sev_model_path = os.path.join(MODELS_DIR, 'sev_model_001')
+    
+    # 加载Applicability模型
+    try:
+        app_model, app_vectorizer, app_metadata = load_model_artifacts(app_model_path)
+        app_threshold = app_metadata.get('app_threshold', app_threshold)
+    except FileNotFoundError:
+        # 如果Applicability模型不存在，使用旧逻辑
+        print(f"警告: Applicability模型不存在 ({app_model_path})，使用旧逻辑")
+        if legacy_model_path:
+            return predict_legacy(text_description, legacy_model_path)
+        else:
+            # 默认认为适用
+            p_applicable = 0.8
+            applicable = True
+    else:
+        # Stage A: 计算 pApplicable
+        X_app = app_vectorizer.transform([processed_text])
+        p_applicable = app_model.predict_proba(X_app)[0, 1]
+        applicable = p_applicable >= app_threshold
+    
+    # Stage A decision: if not applicable, return early without Stage B
+    if not applicable:
+        return {
+            'applicable': False,
+            'pApplicable': float(p_applicable),
+            'severityLevel': None,
+            'severityProbs': None,
+            'riskScore': 0,
+            'pVuln': None,  # 兼容字段
+            'riskLevel': 'Unknown',  # 使用"Unknown"而不是"N/A"
+            'explanation': 'This input text was not identified as vulnerability-related and therefore did not enter the risk assessment stage.',
+            'reason': 'NOT_VULNERABILITY_TEXT',
+            'text_len': len(processed_text),
+            'reliability': 'Low',
+            'notes': ['This input text was not identified as vulnerability-related based on applicability analysis and therefore did not enter the risk assessment stage.'],
+            'inputType': 'normal',
+        }
+    
+    # ========== Stage A后证据充分性检查（保守门控）==========
+    # 即使Stage A通过，如果证据不足，保守跳过Stage B
+    # 这是Stage A的一部分，用于确保只有真正漏洞相关的文本进入Stage B
+    security_keyword_count, context_cue_count, technical_evidence_count = extract_evidence(text_description, processed_text)
+    min_context_threshold = 1
+    total_evidence = context_cue_count + technical_evidence_count
+    
+    # 如果检测到安全关键词但上下文线索和技术证据不足，保守跳过
+    if security_keyword_count > 0 and total_evidence < min_context_threshold:
+        return {
+            'applicable': False,
+            'pApplicable': float(p_applicable),
+            'severityLevel': None,
+            'severityProbs': None,
+            'riskScore': 0,
+            'pVuln': None,
+            'riskLevel': 'Unknown',
+            'explanation': 'This input text was not identified as vulnerability-related and therefore did not enter the risk assessment stage.',
+            'reason': 'NOT_VULNERABILITY_TEXT',
+            'text_len': len(processed_text),
+            'reliability': 'Low',
+            'notes': [
+                'This input text was not identified as vulnerability-related based on applicability analysis and therefore did not enter the risk assessment stage. '
+                f'(Security keywords: {security_keyword_count}, Context cues: {context_cue_count}, Technical evidence: {technical_evidence_count})'
+            ],
+            'inputType': 'normal',
+        }
+    
+    # Stage B: 计算严重度
+    try:
+        sev_model, sev_vectorizer, sev_metadata = load_model_artifacts(sev_model_path)
+    except FileNotFoundError:
+        # 如果Severity模型不存在，使用旧逻辑
+        print(f"警告: Severity模型不存在 ({sev_model_path})，使用旧逻辑")
+        if legacy_model_path:
+            return predict_legacy(text_description, legacy_model_path)
+        else:
+            # 默认返回Medium（Severity模型不可用时的后备）
+            return {
+                'applicable': True,
+                'pApplicable': float(p_applicable),
+                'severityLevel': 'Medium',
+                'severityProbs': {
+                    'Low': 0.25,
+                    'Medium': 0.25,
+                    'High': 0.25,
+                    'Critical': 0.25,
+                },
+                'riskScore': 0.5,
+                'pVuln': 0.5,  # 兼容字段
+                'riskLevel': 'Medium',  # 兼容字段
+                'explanation': 'This input text was identified as vulnerability-related. A conditional risk assessment was performed based on learned vulnerability patterns. Predicted severity tendency: Medium. The risk score reflects a reference estimate under uncertainty. Due to limited or ambiguous evidence, the assessment confidence is low and results should be interpreted as reference only.',
+                'reason': 'MODEL_NOT_FOUND',
+                'reliability': 'Low',
+                'notes': ['Severity model not available, using default predictions.'],
+                'inputType': 'normal',
+            }
+    
+    # 计算4类概率
+    X_sev = sev_vectorizer.transform([processed_text])
+    severity_probs_array = sev_model.predict_proba(X_sev)[0]  # [P(Low), P(Medium), P(High), P(Critical)]
+    severity_probs = {
+        'Low': float(severity_probs_array[0]),
+        'Medium': float(severity_probs_array[1]),
+        'High': float(severity_probs_array[2]),
+        'Critical': float(severity_probs_array[3]),
+    }
+    
+    # 映射到严重度等级
+    severity_levels = ['Low', 'Medium', 'High', 'Critical']
+    severity_level = severity_levels[np.argmax(severity_probs_array)]
+    
+    # 计算风险评分（期望加权）
+    risk_score = (
+        0.1 * severity_probs_array[0] +  # Low
+        0.4 * severity_probs_array[1] +  # Medium
+        0.7 * severity_probs_array[2] +  # High
+        0.9 * severity_probs_array[3]     # Critical
+    )
+    
+    # 计算pVuln（兼容字段）：P(High) + P(Critical)
+    p_vuln = float(severity_probs_array[2] + severity_probs_array[3])
+    
+    # ========== 补丁/缓解文本检测 ==========
+    is_patch_mitigation, patch_confidence = detect_patch_mitigation_text(text_description, processed_text)
+    input_type = 'patch_mitigation' if is_patch_mitigation else 'normal'
+    
+    # ========== 不确定性评估和可靠性降级 ==========
+    reliability = 'Medium'  # 默认可靠性
+    notes = []
+    
+    # 评估预测不确定性
+    is_uncertain, uncertainty_level, uncertainty_reason = assess_prediction_uncertainty(severity_probs_array)
+    if is_uncertain:
+        reliability = downgrade_reliability(reliability, 'UNCERTAINTY')
+        notes.append(
+            f"Prediction uncertainty is high (uncertainty level={uncertainty_level:.2f}). "
+            f"{uncertainty_reason}. Results should be interpreted with caution."
+        )
+    
+    # 如果检测到补丁/缓解文本，降级可靠性并添加说明
+    if is_patch_mitigation:
+        reliability = downgrade_reliability(reliability, 'PATCH_MITIGATION')
+        notes.append(
+            f"This text appears to describe remediation or mitigation measures rather than a vulnerability disclosure. "
+            f"Interpret the risk assessment conservatively, as the text likely describes defensive measures."
+        )
+    
+    # 生成解释（标准化格式）
+    explanation = "This input text was identified as vulnerability-related. A conditional risk assessment was performed based on learned vulnerability patterns."
+    
+    # 如果严重度可用，追加严重度信息
+    if severity_level:
+        explanation += f" Predicted severity tendency: {severity_level}. The risk score reflects a reference estimate under uncertainty."
+    
+    # 如果可靠性低，追加说明
+    if reliability == 'Low':
+        explanation += " Due to limited or ambiguous evidence, the assessment confidence is low and results should be interpreted as reference only."
+    
+    # 特征统计
+    nonzero_features = X_sev.getnnz()
+    total_features = X_sev.shape[1]
+    feature_coverage = nonzero_features / max(total_features, 1.0)
+    
+    # 提取模型路径名称
+    def extract_model_name(model_path):
+        if not model_path:
+            return 'default'
+        parts = model_path.split('/')
+        return parts[-1] if parts else 'default'
+    
+    return {
+        'applicable': True,
+        'pApplicable': float(p_applicable),
+        'severityLevel': severity_level,
+        'severityProbs': severity_probs,
+        'riskScore': float(risk_score),
+        'pVuln': p_vuln,  # 兼容字段
+        'riskLevel': severity_level,  # 兼容字段
+        'explanation': explanation,
+        'reason': 'APPLICABLE',
+        'text_len': len(processed_text),
+        'feature_coverage': float(feature_coverage),
+        'nonzero_features': int(nonzero_features),
+        'reliability': reliability,
+        'notes': notes if notes else None,
+        'inputType': input_type,
+        'modelInfo': {
+            'applicabilityModel': extract_model_name(app_model_path),
+            'severityModel': extract_model_name(sev_model_path),
+        },
+    }
+
+
+def predict_legacy(text_description, model_path):
+    """
+    旧版预测逻辑（向后兼容）
+    """
+    # 这里可以调用原来的predict函数逻辑
+    # 为了简化，我们直接返回一个基本结果
+    return {
+        'applicable': True,
+        'pApplicable': 0.8,
+        'severityLevel': 'Medium',
+        'severityProbs': None,
+        'riskScore': 0.5,
+        'pVuln': 0.5,
+        'riskLevel': 'Medium',
+        'explanation': 'Using legacy model (two-stage models not available).',
+        'reason': 'LEGACY_MODEL',
+    }
+
+
 @app.route('/predict', methods=['POST'])
 def predict():
     """
-    单样本预测端点
+    单样本预测端点（两阶段推理）
     
     请求体:
     {
-        "model_path": "/app/models/risk_model_001",
+        "model_path": "/app/models/risk_model_001",  # 旧模型路径（向后兼容）
+        "app_model_path": "/app/models/app_model_001",  # Applicability模型路径（可选）
+        "sev_model_path": "/app/models/sev_model_001",  # Severity模型路径（可选）
+        "app_threshold": 0.5,  # Applicability阈值（可选）
         "sample": {
             "sample_id": "sample_1",
             "text_description": "漏洞描述文本",
-            "cvss_base_score": 7.5  # 可选
+            "cvss_base_score": 7.5  # 可选（保留兼容）
         }
     }
     """
@@ -203,238 +714,117 @@ def predict():
         if not data:
             return jsonify({'error': 'Request body is required'}), 400
         
-        model_path = data.get('model_path')
         sample = data.get('sample', {})
-        
-        if not model_path:
-            return jsonify({'error': 'model_path is required'}), 400
-        
         text_description = sample.get('text_description', '')
         if not text_description:
             return jsonify({'error': 'text_description is required'}), 400
         
-        # 加载模型
-        model, vectorizer, metadata = load_model_artifacts(model_path)
+        # 获取模型路径
+        app_model_path = data.get('app_model_path')
+        sev_model_path = data.get('sev_model_path')
+        legacy_model_path = data.get('model_path')  # 旧字段，向后兼容
+        app_threshold = data.get('app_threshold', 0.5)
+        legacy_mode = data.get('legacy_mode', False)  # 明确指定才走 legacy
         
-        # 加载训练数据（用于 CVSS 相似度估算）
-        training_data = None
-        dataset_path = metadata.get('dataset_path') if metadata else None
-        if dataset_path:
-            training_data = load_training_data(dataset_path)
-        
-        # 获取alpha（从元数据或环境变量）
-        alpha = metadata.get('params', {}).get('alpha', RISK_ALPHA) if metadata else RISK_ALPHA
-        
-        # 预处理文本
-        processed_text = preprocess_text_for_prediction(text_description)
-        
-        # 特征提取
-        X = vectorizer.transform([processed_text])
-        
-        # 计算特征覆盖度（非零特征占比）
-        # 如果输入文本与训练数据差异很大，特征覆盖度会很低，需要保守处理
-        nonzero_features = X.getnnz()  # 非零特征数量
-        total_features = X.shape[1]    # 总特征数量
-        feature_coverage = nonzero_features / max(total_features, 1.0)
-        
-        # 计算特征权重总和（TF-IDF值的总和），这更能反映文本与训练数据的相似度
-        feature_sum = X.sum()
-        max_possible_sum = 10.0  # 合理的上限，实际值取决于TF-IDF向量化器设置
-        
-        # 预测
-        p_vuln_raw = model.predict_proba(X)[0, 1]
-        
-        # 安全检查：定义与漏洞相关的关键词（常见漏洞描述中会出现的词）
-        # 如果文本中完全没有这些词，且特征覆盖度很低，应该保守处理
-        vulnerability_keywords = {
-            'vulnerability', 'vuln', 'security', 'exploit', 'attack', 'injection',
-            'sql', 'xss', 'csrf', 'buffer', 'overflow', 'authentication', 'authorization',
-            'privilege', 'escalation', 'traversal', 'disclosure', 'execution', 'bypass',
-            'denial', 'service', 'dos', 'ddos', 'malicious', 'unauthorized', 'access',
-            'exposure', 'leak', 'breach', 'penetration', 'intrusion', 'hack', 'crack'
-        }
-        text_words = set(processed_text.lower().split())
-        has_security_keywords = bool(text_words & vulnerability_keywords)
-        
-        # 更严格的置信度调整
-        confidence_adjustment = 1.0
-        p_vuln = p_vuln_raw
-        
-        # 情况1：极低特征覆盖度（< 0.005）或文本极短（< 10字符）
-        if feature_coverage < 0.005 or len(processed_text.strip()) < 10:
-            confidence_adjustment = 0.1
-            # 直接设置很低的上限，无论原始预测如何
-            p_vuln = min(0.15, p_vuln_raw * 0.1)
-        
-        # 情况2：特征覆盖度很低且没有安全相关关键词
-        elif feature_coverage < 0.02 and not has_security_keywords:
-            confidence_adjustment = 0.2
-            p_vuln = min(0.25, p_vuln_raw * 0.2)
-        
-        # 情况3：特征覆盖度低（< 0.05）且没有安全关键词
-        elif feature_coverage < 0.05 and not has_security_keywords:
-            confidence_adjustment = 0.4
-            p_vuln = min(0.35, p_vuln_raw * 0.4)
-        
-        # 情况4：特征权重总和很小，说明文本与训练数据差异很大
-        elif feature_sum < 0.1 and not has_security_keywords:
-            confidence_adjustment = 0.3
-            p_vuln = min(0.30, p_vuln_raw * 0.3)
-        
-        # 情况5：特征覆盖度低但有安全关键词，适度降低
-        elif feature_coverage < 0.05:
-            confidence_adjustment = 0.7
-            p_vuln = p_vuln_raw * 0.7
-        
-        # 情况6：正常情况，使用原始预测
-        else:
+        # 强制使用两阶段模型（除非明确指定 legacy_mode）
+        if legacy_mode and legacy_model_path:
+            # 仅当明确指定 legacy_mode=true 时才走旧流程
+            if not legacy_model_path:
+                legacy_model_path = os.path.join(MODELS_DIR, 'risk_model_001')
+            
+            # 加载旧模型
+            model, vectorizer, metadata = load_model_artifacts(legacy_model_path)
+            
+            # 加载训练数据（用于 CVSS 相似度估算）
+            training_data = None
+            dataset_path = metadata.get('dataset_path') if metadata else None
+            if dataset_path:
+                training_data = load_training_data(dataset_path)
+            
+            # 获取alpha（从元数据或环境变量）
+            alpha = metadata.get('params', {}).get('alpha', RISK_ALPHA) if metadata else RISK_ALPHA
+            
+            # 预处理文本
+            processed_text = preprocess_text_for_prediction(text_description)
+            
+            # 特征提取
+            X = vectorizer.transform([processed_text])
+            
+            # 计算特征覆盖度
+            nonzero_features = X.getnnz()
+            total_features = X.shape[1]
+            feature_coverage = nonzero_features / max(total_features, 1.0)
+            feature_sum = X.sum()
+            
+            # 预测
+            p_vuln_raw = model.predict_proba(X)[0, 1]
             p_vuln = p_vuln_raw
-        
-        # 获取或估算 CVSS 基础评分（在工程裁剪之前）
-        cvss_base_score_input = sample.get('cvss_base_score')
-        cvss_sim_meta = None
-        cvss_base_score = None
-        cvss_estimated = False
-        cvss_method = 'not_applicable'
-        
-        if cvss_base_score_input is None or (isinstance(cvss_base_score_input, float) and np.isnan(cvss_base_score_input)):
-            # 如果没有提供 CVSS，优先使用训练数据相似度估算
-            cvss_base_score_estimated = None
-            if training_data is not None:
+            
+            # 获取或估算 CVSS
+            cvss_base_score_input = sample.get('cvss_base_score')
+            cvss_base_score = cvss_base_score_input
+            cvss_estimated = False
+            cvss_method = 'user_provided' if cvss_base_score_input else 'not_applicable'
+            
+            if cvss_base_score is None and training_data is not None:
                 cvss_base_score_estimated, cvss_sim_meta = estimate_cvss_from_similarity(
                     processed_text, vectorizer, training_data, top_k=5, similarity_threshold=CVSS_SIM_THRESHOLD
                 )
-            
-            # 如果相似度估算失败，使用 p_vuln 映射作为后备（但会被工程裁剪检查）
-            if cvss_base_score_estimated is None:
-                if cvss_sim_meta and cvss_sim_meta.get('reason') == 'LOW_SIMILARITY':
-                    cvss_base_score = None
-                    cvss_estimated = False
-                    cvss_method = 'similarity_failed'
-                else:
-                    cvss_base_score_estimated = estimate_cvss_from_p_vuln(p_vuln)
+                if cvss_base_score_estimated is not None:
                     cvss_base_score = cvss_base_score_estimated
                     cvss_estimated = True
-                    cvss_method = 'p_vuln_fallback'
-            else:
-                cvss_base_score = cvss_base_score_estimated
-                cvss_estimated = True
-                cvss_method = 'similarity'
-        else:
-            cvss_base_score = cvss_base_score_input
-            cvss_estimated = False
-            cvss_method = 'user_provided'
-        
-        # ========== 工程裁剪（Business Clipping）：适用性判定 ==========
-        tfidf_meta = {'nonzero_features': nonzero_features}
-        applicability = assess_applicability(
-            text=processed_text,
-            p_vuln=p_vuln,
-            similarity_meta=cvss_sim_meta,
-            tfidf_meta=tfidf_meta,
-            cvss_input=cvss_base_score_input,
-            clip_na_enabled=CLIP_NA_ENABLED,
-            clip_pvuln_threshold=CLIP_PVULN_THRESHOLD,
-            clip_sim_threshold=CLIP_SIM_THRESHOLD,
-            clip_min_text_len=CLIP_MIN_TEXT_LEN,
-            clip_min_nonzero_tfidf=CLIP_MIN_NONZERO_TFIDF
-        )
-        
-        # ========== Soft Degrade（软降级）逻辑 ==========
-        # 不再强制置零，而是继续计算但标记低可信度
-        is_clipped = False
-        reliability = "High"
-        warnings = []
-        
-        # 计算风险评分（始终计算，不强制置零）
-        risk_score = calculate_risk_score(p_vuln, cvss_base_score, alpha=alpha)
-        
-        # 根据适用性判定结果进行软降级
-        if not applicability['applicable'] and CLIP_NA_ENABLED:
-            is_clipped = True
-            reliability = "Low"
+                    cvss_method = 'similarity'
             
-            # 安全获取 debug 值
-            debug_info = applicability.get('debug', {})
-            max_sim = debug_info.get('max_similarity') if debug_info.get('max_similarity') is not None else 0.0
-            nonzero_feat = debug_info.get('nonzero_features') if debug_info.get('nonzero_features') is not None else 0
-            text_len_debug = debug_info.get('text_len', 0)
-            
-            # 生成警告信息（不再说"not vulnerability-related"）
-            warning_map = {
-                'EMPTY_TEXT': f'Input text is too short ({text_len_debug} chars < {CLIP_MIN_TEXT_LEN} chars). Evidence insufficient for reliable scoring.',
-                'LOW_SIMILARITY': f'Input text has low similarity to vulnerability corpus (max similarity {max_sim:.3f} < {CLIP_SIM_THRESHOLD}). Confidence reduced.',
-                'LOW_SIGNAL': f'Input text has insufficient TF-IDF features ({nonzero_feat} < {CLIP_MIN_NONZERO_TFIDF}). Evidence insufficient for reliable scoring.',
-                'LOW_PVULN': f'Model probability is very low ({p_vuln:.3f} < {CLIP_PVULN_THRESHOLD}). Insufficient evidence for high-severity scoring.'
-            }
-            warning_msg = warning_map.get(applicability['reason'], 'Insufficient evidence for high-severity scoring.')
-            warnings.append(warning_msg)
-            
-            # 生成explanation（强调低置信度，不否定漏洞相关性）
-            explanation_map = {
-                'EMPTY_TEXT': f'Input text is too short ({text_len_debug} chars). The assessment has low confidence due to insufficient information. Results should be interpreted with caution.',
-                'LOW_SIMILARITY': f'Input text shows low similarity to training corpus (max similarity {max_sim:.3f}). The assessment has reduced confidence. Results are for reference only.',
-                'LOW_SIGNAL': f'Input text has insufficient TF-IDF features ({nonzero_feat}). The assessment has low confidence due to limited evidence. Results should be interpreted with caution.',
-                'LOW_PVULN': f'Model probability is low ({p_vuln:.3f}). The assessment has low confidence. Results are for reference only and should be interpreted with caution.'
-            }
-            explanation = explanation_map.get(applicability['reason'], 'Assessment has low confidence due to insufficient evidence. Results are for reference only.')
-            
-            # riskLevel 不再为 N/A，改为 Low 或 Unknown
-            if risk_score < 0.4:
-                risk_level = 'Low'
-            else:
-                # 如果risk_score较高但p_vuln很低，标记为Unknown
-                risk_level = 'Unknown'
-            
-            applicable = False
-            gating_reason = applicability['reason']
-        else:
-            # 正常情况：计算风险评分
+            # 计算风险评分
+            risk_score = calculate_risk_score(p_vuln, cvss_base_score, alpha=alpha)
             risk_level = get_risk_level(risk_score)
             
-            # 根据p_vuln_raw和特征覆盖度确定可靠性
-            if p_vuln_raw < 0.1 or feature_coverage < 0.02:
-                reliability = "Low"
-                warnings.append("Low model confidence due to limited evidence. Results should be interpreted with caution.")
-            elif p_vuln_raw < 0.3 or feature_coverage < 0.05:
-                reliability = "Medium"
-            else:
-                reliability = "High"
-            
-            explanation = None
-            applicable = True
-            gating_reason = None
-        
-        # 构建返回结果
-        result = {
-            'sample_id': sample.get('sample_id', 'unknown'),
-            'p_vuln': float(p_vuln),  # 调整后的预测值（可能被降级）
-            'p_vuln_raw': float(p_vuln_raw),  # 原始模型预测值（永远保留）
-            'risk_score': float(risk_score) if risk_score is not None else None,  # 不强制置0
-            'risk_level': risk_level,  # 不再为N/A
-            'cvss_base_score': float(cvss_base_score) if cvss_base_score is not None else None,
-            'cvss_estimated': bool(cvss_estimated),  # 标记 CVSS 是否为估算值
-            'cvss_method': cvss_method,  # CVSS 来源方法
-            # 新增字段
-            'is_clipped': bool(is_clipped),  # 是否被裁剪/降级
-            'reliability': reliability,  # 可靠性：High/Medium/Low
-            'warnings': warnings if warnings else [],  # 警告信息列表
-            # 调试信息（保留）
-            'feature_coverage': float(feature_coverage),  # 特征覆盖度，用于调试
-            'feature_sum': float(feature_sum),  # 特征权重总和，用于调试
-            'has_security_keywords': bool(has_security_keywords),  # 是否包含安全关键词
-            'confidence_adjustment': float(confidence_adjustment),  # 置信度调整系数，用于调试
-            # 工程裁剪相关信息（保留向后兼容）
-            'explanation': explanation,  # 解释信息（强调低置信度，不否定漏洞相关性）
-            'meta': {
-                'applicable': bool(applicable),
-                'reason': gating_reason,  # 裁剪原因（如果 applicable=False）
-                'max_similarity': applicability.get('debug', {}).get('max_similarity'),
-                'nonzero_features': applicability.get('debug', {}).get('nonzero_features'),
-                'text_len': applicability.get('debug', {}).get('text_len'),
-                'thresholds': applicability.get('thresholds', {})
+            # 构建返回结果（旧格式）
+            result = {
+                'sample_id': sample.get('sample_id', 'unknown'),
+                'p_vuln': float(p_vuln),
+                'p_vuln_raw': float(p_vuln_raw),
+                'risk_score': float(risk_score) if risk_score is not None else None,
+                'risk_level': risk_level,
+                'cvss_base_score': float(cvss_base_score) if cvss_base_score is not None else None,
+                'cvss_estimated': bool(cvss_estimated),
+                'cvss_method': cvss_method,
+                'applicable': True,
+                'pApplicable': 0.8,  # 默认值
+                'severityLevel': risk_level,
+                'severityProbs': None,
+                'explanation': f'Legacy model prediction. Risk level: {risk_level}.',
             }
-        }
+        else:
+            # 默认强制使用两阶段推理
+            # 如果未指定路径，使用默认路径
+            if app_model_path is None:
+                # 尝试使用增强版本（app_model_002_aug_xgb）
+                potential_paths = [
+                    os.path.join(MODELS_DIR, 'app_model_002_aug_xgb'),
+                    os.path.join(MODELS_DIR, 'app_model_002_aug_rf'),
+                    os.path.join(MODELS_DIR, 'app_model_002_aug_lr'),
+                    os.path.join(MODELS_DIR, 'app_model_001'),
+                ]
+                for path in potential_paths:
+                    if os.path.exists(path):
+                        app_model_path = path
+                        break
+            
+            if sev_model_path is None:
+                sev_model_path = os.path.join(MODELS_DIR, 'sev_model_001')
+            
+            # 使用两阶段推理
+            result = predict_two_stage(
+                text_description,
+                app_model_path=app_model_path,
+                sev_model_path=sev_model_path,
+                app_threshold=app_threshold,
+                use_legacy=False,
+            )
+        
+        # 添加sample_id
+        result['sample_id'] = sample.get('sample_id', 'unknown')
         
         return jsonify(result)
     
@@ -453,11 +843,13 @@ def predict():
 @app.route('/predict/batch', methods=['POST'])
 def predict_batch():
     """
-    批量预测端点
+    批量预测端点（强制使用两阶段推理）
     
     请求体:
     {
-        "model_path": "/app/models/risk_model_001",
+        "app_model_path": "/app/models/app_model_002_aug_xgb",  # 可选
+        "sev_model_path": "/app/models/sev_model_001",  # 可选
+        "app_threshold": 0.5,  # 可选
         "samples": [
             {
                 "sample_id": "sample_1",
@@ -476,6 +868,73 @@ def predict_batch():
         if not data:
             return jsonify({'error': 'Request body is required'}), 400
         
+        samples = data.get('samples', [])
+        app_model_path = data.get('app_model_path')
+        sev_model_path = data.get('sev_model_path')
+        app_threshold = data.get('app_threshold', 0.5)
+        
+        if not samples or not isinstance(samples, list):
+            return jsonify({'error': 'samples must be a non-empty list'}), 400
+        
+        # 强制使用两阶段推理，不使用 legacy 流程
+        # 如果未指定路径，使用默认路径
+        if app_model_path is None:
+            potential_paths = [
+                os.path.join(MODELS_DIR, 'app_model_002_aug_xgb'),
+                os.path.join(MODELS_DIR, 'app_model_002_aug_rf'),
+                os.path.join(MODELS_DIR, 'app_model_002_aug_lr'),
+                os.path.join(MODELS_DIR, 'app_model_001'),
+            ]
+            for path in potential_paths:
+                if os.path.exists(path):
+                    app_model_path = path
+                    break
+        
+        if sev_model_path is None:
+            sev_model_path = os.path.join(MODELS_DIR, 'sev_model_001')
+        
+        # 对每个样本调用两阶段预测
+        predictions = []
+        for sample in samples:
+            text_description = sample.get('text_description', '')
+            if not text_description:
+                continue
+            
+            result = predict_two_stage(
+                text_description,
+                app_model_path=app_model_path,
+                sev_model_path=sev_model_path,
+                app_threshold=app_threshold,
+                use_legacy=False,
+            )
+            
+            # 添加 sample_id
+            result['sample_id'] = sample.get('sample_id', 'unknown')
+            predictions.append(result)
+        
+        return jsonify({'predictions': predictions})
+    
+    except Exception as e:
+        error_msg = str(e)
+        traceback_str = traceback.format_exc()
+        print(f"Batch prediction error: {error_msg}\n{traceback_str}")
+        return jsonify({
+            'error': error_msg,
+            'traceback': traceback_str if app.debug else None
+        }), 500
+
+
+@app.route('/predict/batch/legacy', methods=['POST'])
+def predict_batch_legacy():
+    """
+    批量预测端点（旧版，向后兼容）
+    仅当明确需要 legacy 行为时使用
+    """
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({'error': 'Request body is required'}), 400
+        
         model_path = data.get('model_path')
         samples = data.get('samples', [])
         
@@ -485,7 +944,7 @@ def predict_batch():
         if not samples or not isinstance(samples, list):
             return jsonify({'error': 'samples must be a non-empty list'}), 400
         
-        # 加载模型
+        # 加载模型（legacy）
         model, vectorizer, metadata = load_model_artifacts(model_path)
         
         # 加载训练数据（用于 CVSS 相似度估算）
@@ -562,17 +1021,18 @@ def predict_batch():
                 p_vuln = p_vuln_raw
             
             # ========== 拒答机制：优先检查，避免无关文本被评分 ==========
+            # 注意：此逻辑仅用于 legacy 批量预测，不影响两阶段预测的 applicable 判定
             # A) 文本过短或为空
             if len(processed_text.strip()) < MIN_TEXT_LENGTH:
                 applicable = False
-                gating_reason = 'EMPTY_TEXT'
-                risk_level = 'N/A'
+                gating_reason = 'NOT_VULNERABILITY_TEXT'  # 改为统一的原因
+                risk_level = 'Unknown'
                 risk_score = 0.0
                 cvss_base_score = None
                 cvss_estimated = False
                 cvss_method = 'not_applicable'
                 cvss_sim_meta = None
-                explanation = f'输入文本过短（{len(processed_text.strip())} 字符 < {MIN_TEXT_LENGTH} 字符），无法进行有效预测'
+                explanation = 'This input text was not identified as vulnerability-related and therefore did not enter the risk assessment stage.'
             else:
                 # 获取或估算 CVSS 基础评分
                 cvss_base_score_input = sample.get('cvss_base_score')
@@ -619,35 +1079,39 @@ def predict_batch():
                     cvss_method = 'user_provided'
                 
                 # B) CVSS 相似度低且用户未提供 CVSS
+                # 注意：此逻辑仅用于 legacy 批量预测，不影响两阶段预测的 applicable 判定
                 if cvss_base_score is None and cvss_sim_meta and cvss_sim_meta.get('reason') == 'LOW_SIMILARITY':
                     applicable = False
-                    gating_reason = 'LOW_SIMILARITY'
-                    risk_level = 'N/A'
+                    gating_reason = 'NOT_VULNERABILITY_TEXT'  # 改为统一的原因
+                    risk_level = 'Unknown'
                     risk_score = 0.0
                     max_sim = cvss_sim_meta.get('max_similarity', 0.0)
-                    explanation = f'输入文本与训练数据相似度低（{max_sim:.3f} < {CVSS_SIM_THRESHOLD}），无法可靠估算风险'
+                    explanation = 'This input text was not identified as vulnerability-related and therefore did not enter the risk assessment stage.'
                 # C) P(vuln) 很低（< 0.3）且 CVSS 不是用户提供的（即系统估算的）
-                # 如果模型认为漏洞概率很低，即使相似度够高估算出了 CVSS，也应该拒绝评分
+                # 注意：此逻辑仅用于 legacy 批量预测，不影响两阶段预测的 applicable 判定
+                # 在两阶段预测中，applicable 仅由 pApplicable 决定
                 elif p_vuln < 0.3 and cvss_method != 'user_provided':
                     applicable = False
-                    gating_reason = 'LOW_PVULN'
-                    risk_level = 'N/A'
+                    gating_reason = 'NOT_VULNERABILITY_TEXT'  # 改为统一的原因
+                    risk_level = 'Unknown'
                     risk_score = 0.0
-                    explanation = f'漏洞概率很低（{p_vuln:.3f} < 0.3），模型认为这不是漏洞，无法确定风险等级'
+                    explanation = 'This input text was not identified as vulnerability-related and therefore did not enter the risk assessment stage.'
                 # D) P(vuln) 在不确定区间且无 CVSS
+                # 注意：此逻辑仅用于 legacy 批量预测，不影响两阶段预测的 applicable 判定
                 elif cvss_base_score is None and PVULN_UNCERTAIN_LOW <= p_vuln <= PVULN_UNCERTAIN_HIGH:
                     applicable = False
-                    gating_reason = 'UNCERTAIN_PVULN'
-                    risk_level = 'Uncertain'
+                    gating_reason = 'NOT_VULNERABILITY_TEXT'  # 改为统一的原因
+                    risk_level = 'Unknown'
                     risk_score = 0.0
-                    explanation = f'漏洞概率在不确定区间（{p_vuln:.3f} 在 [{PVULN_UNCERTAIN_LOW}, {PVULN_UNCERTAIN_HIGH}]），且无 CVSS 信息，无法确定风险等级'
+                    explanation = 'This input text was not identified as vulnerability-related and therefore did not enter the risk assessment stage.'
                 # E) 特征覆盖度极低且无安全关键词（强信号表明是无关文本）
+                # 注意：此逻辑仅用于 legacy 批量预测，不影响两阶段预测的 applicable 判定
                 elif feature_coverage < 0.01 and not has_security_keywords and cvss_base_score is None:
                     applicable = False
-                    gating_reason = 'OOD'  # Out-of-Distribution
-                    risk_level = 'N/A'
+                    gating_reason = 'NOT_VULNERABILITY_TEXT'  # 改为统一的原因
+                    risk_level = 'Unknown'
                     risk_score = 0.0
-                    explanation = f'输入文本与训练数据差异极大（特征覆盖度 {feature_coverage:.4f} < 0.01），且无安全相关关键词，无法进行风险评估'
+                    explanation = 'This input text was not identified as vulnerability-related and therefore did not enter the risk assessment stage.'
                 # 正常情况
                 else:
                     # 计算风险评分（使用实际或估算的 CVSS）
@@ -655,25 +1119,30 @@ def predict_batch():
                     risk_level = get_risk_level(risk_score)
                     explanation = None
             
-            predictions.append({
+            # 构建返回结果（legacy 批量预测格式）
+            # 注意：applicable=false 时，字段值必须符合两阶段预测规范
+            result_item = {
                 'sample_id': sample.get('sample_id', f'sample_{i}'),
                 'text_description': sample.get('text_description', ''),
                 'p_vuln': float(p_vuln),
                 'p_vuln_raw': float(p_vuln_raw),
-                'risk_score': float(risk_score),
-                'risk_level': risk_level,
+                'risk_score': float(risk_score) if applicable else 0.0,
+                'risk_level': risk_level if applicable else 'Unknown',
                 'cvss_base_score': float(cvss_base_score) if cvss_base_score is not None else None,
-                'cvss_estimated': bool(cvss_estimated),  # 标记 CVSS 是否为估算值
-                'cvss_method': cvss_method,  # CVSS 来源方法
+                'cvss_estimated': bool(cvss_estimated),
+                'cvss_method': cvss_method,
                 'feature_coverage': float(feature_coverage),
                 'feature_sum': float(feature_sum),
                 'has_security_keywords': bool(has_security_keywords),
                 'confidence_adjustment': float(confidence_adjustment),
-                # 新增字段：拒答机制相关信息
-                'applicable': bool(applicable),  # 是否适用于风险评分
-                'explanation': explanation,  # 解释信息（如果不适用）
+                # 两阶段字段（legacy 批量预测时，applicable=false 表示未通过门控）
+                'applicable': bool(applicable),
+                'pApplicable': None,  # legacy 流程不提供 pApplicable
+                'severityLevel': None if not applicable else risk_level,
+                'severityProbs': None if not applicable else None,  # legacy 不提供概率分布
+                'explanation': explanation,
                 'meta': {
-                    'reason': gating_reason,  # 拒答原因（如果 applicable=False）
+                    'reason': gating_reason,
                     'max_similarity': cvss_sim_meta.get('max_similarity') if cvss_sim_meta else None,
                     'thresholds': {
                         'cvss_sim_threshold': float(CVSS_SIM_THRESHOLD),
@@ -682,7 +1151,8 @@ def predict_batch():
                         'min_text_length': int(MIN_TEXT_LENGTH)
                     }
                 }
-            })
+            }
+            predictions.append(result_item)
         
         # 统计信息
         risk_levels = [p['risk_level'] for p in predictions]

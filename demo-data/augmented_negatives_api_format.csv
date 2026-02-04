@@ -1,0 +1,32 @@
+sample_id,text_description
+AUG-NOISE-001,"hello hello, nice to meet you"
+AUG-NOISE-002,test test test test test
+AUG-NOISE-003,INFO: application started successfully
+AUG-NOISE-004,today is a beautiful day outside
+AUG-NOISE-005,lorem ipsum dolor sit amet consectetur adipiscing elit
+AUG-NOISE-006,DEBUG: processing request with id 12345
+AUG-NOISE-007,thank you very much for your time
+AUG-NOISE-008,error error error error error
+AUG-NOISE-009,exception in thread main java lang nullpointerexception
+AUG-NOISE-010,random words in a sentence format
+AUG-KW-001,TODAY IS A GOOD DAY XSS
+AUG-KW-002,this is a test for sql injection
+AUG-KW-003,checking rce functionality
+AUG-KW-004,working on csrf implementation
+AUG-KW-005,discussing buffer overflow in meeting
+AUG-KW-006,learning about command injection concepts
+AUG-KW-007,reading documentation about path traversal
+AUG-KW-008,planning xxe feature development
+AUG-KW-009,considering ssrf as option
+AUG-KW-010,introduction to privilege escalation
+AUG-PATCH-001,Fix: Prevent command injection by sanitizing user input. Added input validation to block malicious payloads and escape special characters.
+AUG-PATCH-002,Security: Implemented CSRF token validation to prevent cross-site request forgery attacks. All state-changing requests now require valid tokens.
+AUG-PATCH-003,Patch: Added output encoding to mitigate XSS vulnerabilities. User-generated content is now properly escaped before rendering in HTML.
+AUG-PATCH-004,Hotfix: Escaped SQL queries using parameterized statements to prevent SQL injection. Database interactions now use prepared statements exclusively.
+AUG-PATCH-005,Fix: Validated file upload paths to prevent directory traversal. Added path normalization and whitelist validation for allowed directories.
+AUG-PATCH-006,Security: Hardened session management to prevent session fixation. Implemented session regeneration on authentication and secure cookie flags.
+AUG-PATCH-007,Patch: Added rate limiting to prevent brute force attacks. Login attempts are now throttled after multiple failed authentication requests.
+AUG-PATCH-008,Fix: Sanitized XML input to prevent XXE attacks. Disabled external entity processing and restricted XML parser configuration.
+AUG-PATCH-009,Security: Implemented input whitelist validation to block malicious payloads. Only predefined safe values are accepted for critical parameters.
+AUG-PATCH-010,Hotfix: Added output sanitization to prevent stored XSS. User content is escaped and validated before being stored in the database.
+

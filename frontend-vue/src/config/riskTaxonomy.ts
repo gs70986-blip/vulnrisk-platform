@@ -196,3 +196,6 @@ export function getRiskTypeColor(riskTypeId: string): string {
   return colors[riskTypeId] || '#909399'
 }
 
+
+
+

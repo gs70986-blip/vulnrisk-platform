@@ -18,21 +18,38 @@ export interface BatchPredictionInput {
 export class PredictionService {
 
   async predict(input: PredictionInput, modelId?: string) {
-    // Get active model if not specified
+    // Get active Stage A model if not specified (排除 Stage B 严重度模型)
     let model;
     if (modelId) {
       model = await prisma.mLModel.findUnique({ where: { id: modelId } });
     } else {
-      model = await prisma.mLModel.findFirst({ where: { isActive: true } });
+      model = await prisma.mLModel.findFirst({ 
+        where: { 
+          isActive: true,
+          NOT: {
+            OR: [
+              { id: { startsWith: 'sev_model_' } },
+            ]
+          }
+        } 
+      });
     }
 
     if (!model) {
-      throw new Error('No active model found. Please activate a model first.');
+      throw new Error('No active Stage A (applicability) model found. Please activate a model first.');
     }
 
     // Call ML service for prediction and risk calculation
+    // 强制使用两阶段预测：传递 app_model_path 和 sev_model_path
+    // 从 model.artifactPath 提取模型路径（如果是 Stage A 模型）
+    const appModelPath = model.artifactPath;  // Stage A 模型路径
+    const sevModelPath = '/app/models/sev_model_001';  // Stage B 模型路径（固定）
+    
     const mlRequest = {
-      model_path: model.artifactPath,
+      // 不再传递 model_path，改为传递两阶段模型路径
+      app_model_path: appModelPath,
+      sev_model_path: sevModelPath,
+      app_threshold: 0.5,  // 默认阈值
       sample: {
         sample_id: input.sample_id,
         text_description: input.text_description,
@@ -45,19 +62,32 @@ export class PredictionService {
 
       const { 
         p_vuln, 
-        p_vuln_raw,  // 新增：原始预测值
+        p_vuln_raw,  // 原始预测值
         risk_score, 
         risk_level, 
         cvss_base_score, 
         explanation, 
         meta,
-        is_clipped,  // 新增：是否被裁剪
-        reliability,  // 新增：可靠性
-        warnings  // 新增：警告信息
+        is_clipped,  // 是否被裁剪
+        reliability,  // 可靠性
+        warnings,  // 警告信息
+        // 两阶段模型新字段
+        pApplicable,
+        applicable,
+        severityLevel,
+        severityProbs,
+        riskScore: two_stage_risk_score,
       } = response.data;
 
       // 使用 ML 服务返回的 CVSS（如果输入为空，ML 服务会返回估算值）
       const finalCvss = cvss_base_score ?? input.cvss_base_score;
+      
+      // 优先使用两阶段模型的字段，否则使用旧字段
+      const finalRiskScore = two_stage_risk_score ?? risk_score ?? 0;
+      const finalRiskLevel = severityLevel ?? (risk_level === 'N/A' ? 'Unknown' : risk_level);
+      const finalPVuln = p_vuln ?? (severityProbs ? 
+        (severityProbs.High || 0) + (severityProbs.Critical || 0) : 
+        p_vuln);
 
       // 构建扩展的metadata，包含新字段
       const extendedMeta = {
@@ -66,6 +96,11 @@ export class PredictionService {
         is_clipped: is_clipped || false,  // 是否被裁剪
         reliability: reliability || 'Medium',  // 可靠性
         warnings: warnings || [],  // 警告信息
+        // 两阶段模型字段
+        pApplicable: pApplicable ?? null,
+        applicable: applicable ?? true,
+        severityLevel: severityLevel ?? null,
+        severityProbs: severityProbs ?? null,
       };
 
       // Save prediction to database
@@ -74,10 +109,10 @@ export class PredictionService {
           modelId: model.id,
           sampleId: input.sample_id,
           textDescription: input.text_description,
-          pVuln: p_vuln,
+          pVuln: finalPVuln,
           cvss: finalCvss,  // 使用 ML 服务返回的 CVSS（包含估算值）
-          riskScore: risk_score ?? 0,  // 如果为null，使用0（向后兼容）
-          riskLevel: risk_level === 'N/A' ? 'Unknown' : risk_level,  // 将N/A映射为Unknown
+          riskScore: finalRiskScore,  // 如果为null，使用0（向后兼容）
+          riskLevel: finalRiskLevel,  // 将N/A映射为Unknown
           explanation: explanation || null,  // 保存 explanation 到数据库
           metadata: extendedMeta,  // 保存扩展的meta到数据库（JSON 字段）
         },
@@ -88,8 +123,17 @@ export class PredictionService {
         ...prediction,
         pVulnRaw: p_vuln_raw,
         isClipped: is_clipped || false,
-        reliability: reliability || 'Medium',
+        reliability: reliability || response.data.reliability || 'Medium',
         warnings: warnings || [],
+        // 两阶段模型字段
+        pApplicable: pApplicable ?? null,
+        applicable: applicable ?? true,
+        severityLevel: severityLevel ?? null,
+        severityProbs: severityProbs ?? null,
+        // 系统级处理字段
+        notes: response.data.notes || null,
+        inputType: response.data.inputType || 'normal',
+        modelInfo: response.data.modelInfo || null,
         meta: extendedMeta,  // 同时提供meta字段（向后兼容）
       };
     } catch (error: any) {
@@ -101,21 +145,38 @@ export class PredictionService {
   }
 
   async batchPredict(input: BatchPredictionInput, modelId?: string) {
-    // Get active model if not specified
+    // Get active Stage A model if not specified (排除 Stage B 严重度模型)
     let model;
     if (modelId) {
       model = await prisma.mLModel.findUnique({ where: { id: modelId } });
     } else {
-      model = await prisma.mLModel.findFirst({ where: { isActive: true } });
+      // 获取激活的 Stage A 模型（排除 Stage B 严重度模型）
+      model = await prisma.mLModel.findFirst({ 
+        where: { 
+          isActive: true,
+          NOT: {
+            OR: [
+              { id: { startsWith: 'sev_model_' } },
+            ]
+          }
+        } 
+      });
     }
 
     if (!model) {
-      throw new Error('No active model found. Please activate a model first.');
+      throw new Error('No active Stage A (applicability) model found. Please activate a model first.');
     }
 
     // Call ML service for batch prediction
+    // 强制使用两阶段预测：传递 app_model_path 和 sev_model_path
+    const appModelPath = model.artifactPath;  // Stage A 模型路径
+    const sevModelPath = '/app/models/sev_model_001';  // Stage B 模型路径（固定）
+    
     const mlRequest = {
-      model_path: model.artifactPath,
+      // 不再传递 model_path，改为传递两阶段模型路径
+      app_model_path: appModelPath,
+      sev_model_path: sevModelPath,
+      app_threshold: 0.5,  // 默认阈值
       samples: input.samples,
     };
 
@@ -132,23 +193,43 @@ export class PredictionService {
           // 构建扩展的metadata
           const extendedMeta = {
             ...(pred.meta || {}),
-            p_vuln_raw: pred.p_vuln_raw,
+            p_vuln_raw: pred.p_vuln_raw ?? pred.pApplicable ?? null,
             is_clipped: pred.is_clipped || false,
             reliability: pred.reliability || 'Medium',
             warnings: pred.warnings || [],
+            // 两阶段模型字段
+            pApplicable: pred.pApplicable ?? null,
+            applicable: pred.applicable ?? true,
+            severityLevel: pred.severityLevel ?? null,
+            severityProbs: pred.severityProbs ?? null,
           };
+
+          // 计算 pVuln：优先使用 pVuln，否则从 severityProbs 计算（High + Critical 的概率），最后使用 pApplicable
+          const finalPVuln = pred.pVuln ?? pred.p_vuln ?? (pred.severityProbs ? 
+            ((pred.severityProbs.High || 0) + (pred.severityProbs.Critical || 0)) : 
+            (pred.pApplicable ?? 0.5));
+
+          // 获取 riskScore 和 riskLevel：优先使用两阶段模型的字段
+          const finalRiskScore = pred.riskScore ?? pred.risk_score ?? 0;
+          const finalRiskLevel = pred.riskLevel ?? pred.severityLevel ?? 
+            (pred.risk_level === 'N/A' || pred.risk_level === 'Unknown' ? 'Unknown' : pred.risk_level) ?? 
+            'Unknown';
+
+          // 获取 textDescription：从原始样本中获取
+          const originalSample = input.samples.find((s: any) => s.sample_id === pred.sample_id);
+          const textDescription = pred.text_description ?? originalSample?.text_description ?? null;
 
           return prisma.prediction.create({
             data: {
               modelId: model!.id,
               sampleId: pred.sample_id,
-              textDescription: pred.text_description,
-              pVuln: pred.p_vuln,
-              cvss: pred.cvss_base_score ?? undefined,  // 使用 ML 服务返回的 CVSS（包含估算值）
-              riskScore: pred.risk_score ?? 0,  // 如果为null，使用0（向后兼容）
-              riskLevel: pred.risk_level === 'N/A' ? 'Unknown' : pred.risk_level,  // 将N/A映射为Unknown
-              explanation: pred.explanation || null,  // 保存 explanation 到数据库
-              metadata: extendedMeta,  // 保存扩展的meta到数据库（JSON 字段）
+              textDescription: textDescription,
+              pVuln: finalPVuln,
+              cvss: pred.cvss_base_score ?? pred.cvss ?? undefined,
+              riskScore: finalRiskScore,
+              riskLevel: finalRiskLevel,
+              explanation: pred.explanation || null,
+              metadata: extendedMeta,
             },
           });
         })
@@ -190,6 +271,11 @@ export class PredictionService {
         isClipped: meta.is_clipped || false,
         reliability: meta.reliability || 'Medium',
         warnings: meta.warnings || [],
+        // 两阶段模型字段
+        pApplicable: meta.pApplicable ?? null,
+        applicable: meta.applicable ?? true,
+        severityLevel: meta.severityLevel ?? pred.riskLevel,
+        severityProbs: meta.severityProbs ?? null,
         meta: meta,  // 将 metadata 映射为 meta
       };
     });
@@ -220,6 +306,11 @@ export class PredictionService {
       isClipped: meta.is_clipped || false,
       reliability: meta.reliability || 'Medium',
       warnings: meta.warnings || [],
+      // 两阶段模型字段
+      pApplicable: meta.pApplicable ?? null,
+      applicable: meta.applicable ?? true,
+      severityLevel: meta.severityLevel ?? prediction.riskLevel,
+      severityProbs: meta.severityProbs ?? null,
       meta: meta,  // 同时提供meta字段（向后兼容）
     };
   }

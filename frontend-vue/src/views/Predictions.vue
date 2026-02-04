@@ -33,68 +33,85 @@
 
       <!-- Prediction History -->
       <el-table :data="predictions" style="width: 100%" v-loading="loading">
-        <el-table-column prop="sampleId" label="Sample ID" width="200" />
-        <el-table-column label="Text Description" min-width="250" show-overflow-tooltip>
+        <el-table-column prop="sampleId" label="Sample ID" width="200" align="left" />
+        <el-table-column label="Text Description" min-width="250" align="left" show-overflow-tooltip>
           <template #default="scope">
-            <span>{{ scope.row.textDescription || '-' }}</span>
-            <el-tooltip 
-              v-if="scope.row.riskLevel === 'N/A' && scope.row.explanation" 
-              :content="scope.row.explanation" 
-              placement="top"
-            >
-              <span style="color: #909399; cursor: help; font-size: 12px; margin-left: 5px;">ℹ️</span>
-            </el-tooltip>
-          </template>
-        </el-table-column>
-        <el-table-column label="P(vuln)" width="150">
-          <template #default="scope">
-            <el-progress
-              :percentage="scope.row.pVuln * 100"
-              :color="getRiskColor(scope.row.pVuln)"
-              :stroke-width="8"
-            />
-            <span style="margin-left: 8px">{{ formatPercent(scope.row.pVuln) }}</span>
-          </template>
-        </el-table-column>
-        <el-table-column label="Risk Score" width="150">
-          <template #default="scope">
-            <el-progress
-              :percentage="scope.row.riskScore * 100"
-              :color="getRiskColor(scope.row.riskScore)"
-              :stroke-width="8"
-            />
-            <span style="margin-left: 8px">{{ formatRiskScore(scope.row.riskScore) }}</span>
-          </template>
-        </el-table-column>
-        <el-table-column 
-          prop="riskLevel"
-          label="Risk Level" 
-          width="200"
-          sortable
-          :sort-method="sortRiskLevel"
-        >
-          <template #default="scope">
-            <div style="display: flex; align-items: center; gap: 5px;">
-              <el-tag :type="getRiskTagType(scope.row.riskLevel)">
-                {{ scope.row.riskLevel }}
-              </el-tag>
-              <el-tooltip v-if="scope.row.explanation" :content="scope.row.explanation" placement="top">
-                <span style="color: #909399; cursor: help; font-size: 12px;">ℹ️</span>
+            <div class="text-description-cell">
+              <span>{{ scope.row.textDescription || '-' }}</span>
+              <el-tooltip 
+                v-if="scope.row.riskLevel === 'N/A' && scope.row.explanation" 
+                :content="scope.row.explanation" 
+                placement="top"
+              >
+                <span class="info-icon">ℹ️</span>
               </el-tooltip>
             </div>
           </template>
         </el-table-column>
-        <el-table-column prop="cvss" label="CVSS" width="100">
+        <el-table-column label="P(Applicable)" width="160" align="center">
           <template #default="scope">
-            {{ scope.row.cvss !== null && scope.row.cvss !== undefined ? scope.row.cvss.toFixed(2) : 'N/A' }}
+            <el-tooltip 
+              content="Whether the input text entered the risk assessment stage (Stage A decision)."
+              placement="top"
+            >
+              <div class="progress-cell">
+                <el-progress
+                  :percentage="getPApplicable(scope.row) * 100"
+                  :color="getRiskColor(getPApplicable(scope.row))"
+                  :stroke-width="8"
+                  :show-text="false"
+                />
+                <span class="progress-text">{{ formatPercent(getPApplicable(scope.row)) }}</span>
+              </div>
+            </el-tooltip>
           </template>
         </el-table-column>
-        <el-table-column prop="createdAt" label="Created At" width="180">
+        <el-table-column label="Risk Score (Reference)" width="180" align="center">
           <template #default="scope">
-            {{ formatDate(scope.row.createdAt) }}
+            <div v-if="shouldShowSeverityInfo(scope.row)" class="progress-cell">
+              <el-progress
+                :percentage="getRiskScore(scope.row) * 100"
+                :color="getRiskColor(getRiskScore(scope.row))"
+                :stroke-width="8"
+                :show-text="false"
+              />
+              <span class="progress-text">{{ formatRiskScore(getRiskScore(scope.row)) }}</span>
+            </div>
+            <span v-else class="na-text">N/A</span>
           </template>
         </el-table-column>
-        <el-table-column label="Actions" width="100">
+        <el-table-column 
+          label="Risk Level" 
+          width="180"
+          align="center"
+          sortable
+          :sort-method="sortRiskLevel"
+        >
+          <template #default="scope">
+            <div class="risk-level-cell">
+              <el-tag :type="getRiskTagType(getDisplayRiskLevel(scope.row))">
+                {{ getDisplayRiskLevel(scope.row) }}
+              </el-tag>
+              <el-tag 
+                v-if="scope.row.inputType === 'patch_mitigation'" 
+                type="warning" 
+                size="small"
+                style="margin-left: 5px"
+              >
+                Remediation
+              </el-tag>
+              <el-tooltip v-if="scope.row.explanation" :content="scope.row.explanation" placement="top">
+                <span class="info-icon">ℹ️</span>
+              </el-tooltip>
+            </div>
+          </template>
+        </el-table-column>
+        <el-table-column prop="createdAt" label="Created At" width="180" align="center">
+          <template #default="scope">
+            <span class="date-value">{{ formatDate(scope.row.createdAt) }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="Actions" width="100" align="center">
           <template #default="scope">
             <el-button size="small" @click="viewReport(scope.row.id)">
               View
@@ -369,6 +386,10 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Upload, UploadFilled, Download, ArrowDown as ArrowDownIcon } from '@element-plus/icons-vue'
 import { predictionApi, githubApi } from '@/services/api'
 import type { Prediction, GitHubFetchResponse, GitHubBatchFetchResponse } from '@/services/api'
+import { 
+  getDisplayRiskLevel, 
+  getDisplayHighRiskProb 
+} from '@/utils/predictionMapper'
 
 const router = useRouter()
 
@@ -636,16 +657,49 @@ const handleExport = async (format: 'csv' | 'excel' | 'json') => {
   }
 }
 
-const formatPercent = (value: number) => {
-  return (value * 100).toFixed(2) + '%'
+// 获取P(Applicable)值
+const getPApplicable = (prediction: any): number => {
+  if (prediction.pApplicable !== null && prediction.pApplicable !== undefined) {
+    return prediction.pApplicable
+  }
+  // 兼容旧字段
+  if (prediction.pVuln !== null && prediction.pVuln !== undefined) {
+    return prediction.pVuln
+  }
+  return 0
 }
 
-const formatRiskScore = (value: number) => {
-  return value.toFixed(2)
+// 获取风险评分
+const getRiskScore = (prediction: any): number => {
+  if (prediction.riskScore !== null && prediction.riskScore !== undefined) {
+    return prediction.riskScore
+  }
+  return 0
 }
 
 const formatDate = (date: string) => {
   return new Date(date).toLocaleString()
+}
+
+const formatPercent = (value: number | null): string => {
+  if (value === null || value === undefined || isNaN(value)) {
+    return 'N/A'
+  }
+  return (value * 100).toFixed(1) + '%'
+}
+
+const formatRiskScore = (value: number | null): string => {
+  if (value === null || value === undefined || isNaN(value)) {
+    return 'N/A'
+  }
+  return value.toFixed(3)
+}
+
+// 判断是否应该显示严重度信息
+const shouldShowSeverityInfo = (prediction: any): boolean => {
+  const applicable = prediction.applicable !== false
+  const riskLevel = getDisplayRiskLevel(prediction)
+  return applicable && riskLevel !== 'N/A' && riskLevel !== 'Unknown'
 }
 
 const getRiskColor = (value: number) => {
@@ -693,8 +747,8 @@ const sortRiskLevel = (a: any, b: any) => {
     'Uncertain': 5,
   }
   
-  const levelA = riskLevelOrder[a.riskLevel] || 99
-  const levelB = riskLevelOrder[b.riskLevel] || 99
+  const levelA = riskLevelOrder[getDisplayRiskLevel(a)] || 99
+  const levelB = riskLevelOrder[getDisplayRiskLevel(b)] || 99
   
   return levelA - levelB
 }
@@ -838,5 +892,74 @@ onMounted(() => {
 
 .metrics span {
   font-size: 12px;
+}
+
+/* 表格单元格对齐样式 */
+.progress-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 32px;
+}
+
+.progress-cell :deep(.el-progress) {
+  flex: 1;
+  min-width: 60px;
+  max-width: 80px;
+}
+
+.progress-text {
+  min-width: 45px;
+  text-align: right;
+  font-size: 13px;
+  font-weight: 500;
+  color: #606266;
+}
+
+.risk-level-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+}
+
+.text-description-cell {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.info-icon {
+  color: #909399;
+  cursor: help;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+.cvss-value {
+  font-size: 13px;
+  font-weight: 500;
+  color: #606266;
+}
+
+.date-value {
+  font-size: 13px;
+  color: #606266;
+}
+
+.na-text {
+  font-size: 13px;
+  color: #909399;
+  font-style: italic;
+}
+
+/* 确保表格单元格垂直居中 */
+:deep(.el-table td) {
+  vertical-align: middle;
+}
+
+:deep(.el-table th) {
+  vertical-align: middle;
 }
 </style>

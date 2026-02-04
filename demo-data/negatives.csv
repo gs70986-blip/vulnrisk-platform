@@ -1,0 +1,23 @@
+sampleId,textDescription,expected_applicable,demo_note
+NEG-001,"The login button does not respond when clicked on mobile devices. Users report that tapping the button multiple times has no effect, making it impossible to authenticate on smartphones.",false,"UI bug with no security implications"
+NEG-002,"The application crashes when processing large CSV files with more than 10000 rows. The error occurs during file parsing and results in an unhandled exception that terminates the process.",false,"Application crash bug, not a security issue"
+NEG-003,"The documentation page contains several typos and grammatical errors. The user guide section needs proofreading and correction to improve readability and accuracy.",false,"Documentation issue, no security relevance"
+NEG-004,"The build process fails intermittently on the CI server. Sometimes the tests pass and sometimes they fail with timeout errors, making the deployment pipeline unreliable.",false,"CI flakiness, engineering infrastructure issue"
+NEG-005,"The database query performance is slow when retrieving user profiles. Queries take over 5 seconds to complete, causing noticeable delays in the user interface.",false,"Performance issue, not a security vulnerability"
+NEG-006,"The application does not remember user preferences after browser refresh. Settings like theme selection and language preference are reset to default values.",false,"Feature request for preference persistence"
+NEG-007,"The codebase has inconsistent coding style with mixed indentation and variable naming conventions. A refactoring pass is needed to standardize the code format.",false,"Code quality improvement, no security impact"
+NEG-008,"The email notification system fails to send messages when the SMTP server is temporarily unavailable. Users do not receive important alerts during server outages.",false,"Email delivery issue, infrastructure problem"
+NEG-009,"The search functionality returns incorrect results when using special characters. Searching for terms with parentheses or quotes produces empty result sets.",false,"Search feature bug, no security concern"
+NEG-010,"The application displays incorrect timestamps in different time zones. Events show wrong dates and times when viewed by users in various geographic locations.",false,"Timezone handling bug, display issue"
+NEG-011,"The dependency installation fails on Windows systems due to path length limitations. The npm package manager cannot install packages with deeply nested directory structures.",false,"Build environment compatibility issue"
+NEG-012,"The user interface layout breaks on smaller screen sizes. Elements overlap and become unreadable when the browser window is resized below 1024 pixels width.",false,"Responsive design issue, UI problem"
+NEG-013,"The application logs excessive debug information to the console in production. This creates performance overhead and makes log files difficult to read and analyze.",false,"Logging configuration issue, operational concern"
+NEG-014,"The database migration script fails when run on PostgreSQL version 12. The syntax used is only compatible with newer database versions, causing deployment failures.",false,"Database compatibility issue, infrastructure"
+NEG-015,"The application does not handle network timeouts gracefully. When the API server is slow to respond, the frontend becomes unresponsive and requires a page refresh.",false,"Network timeout handling, UX issue"
+NEG-016,"The file upload feature accepts files larger than the configured limit. Users can upload 50MB files even though the maximum size is set to 10MB in the configuration.",false,"File size validation bug, not security"
+NEG-017,"The application displays error messages with technical stack traces to end users. These messages are confusing and should be replaced with user-friendly error descriptions.",false,"Error message formatting, UX improvement"
+NEG-018,"The caching mechanism does not invalidate entries when data is updated. Users see stale information until the cache expires, leading to inconsistent application state.",false,"Cache invalidation bug, data consistency"
+NEG-019,"The application requires manual database index creation for optimal query performance. The automated migration process does not include index definitions for new tables.",false,"Database optimization task, performance"
+NEG-020,"The unit tests have high false positive rates due to timing dependencies. Tests pass or fail randomly depending on system load, making the test suite unreliable.",false,"Test reliability issue, quality assurance"
+
+

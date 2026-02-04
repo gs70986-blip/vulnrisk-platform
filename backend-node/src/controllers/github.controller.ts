@@ -44,3 +44,37 @@ export const batchFetchGitHubContent = async (req: Request, res: Response) => {
   }
 };
 
+export const exportSearchCorpus = async (req: Request, res: Response) => {
+  try {
+    const targetCount = parseInt(req.query.targetCount as string, 10) || 2200;
+    const includeComments = req.query.includeComments !== 'false';
+    const maxCommentsPerItem = parseInt(req.query.maxCommentsPerItem as string, 10) || 30;
+    const corpusType = (req.query.corpusType as 'security' | 'negative') || 'security';
+
+    if (targetCount < 1 || targetCount > 10000) {
+      return res.status(400).json({ error: 'targetCount must be between 1 and 10000' });
+    }
+
+    if (corpusType !== 'security' && corpusType !== 'negative') {
+      return res.status(400).json({ error: 'corpusType must be "security" or "negative"' });
+    }
+
+    console.log(`[GitHub Export] Starting export with targetCount=${targetCount}, includeComments=${includeComments}, corpusType=${corpusType}`);
+
+    const result = await githubService.exportSearchCorpus({
+      targetCount,
+      includeComments,
+      maxCommentsPerItem,
+      corpusType,
+    });
+
+    res.json({
+      success: true,
+      ...result,
+    });
+  } catch (error: any) {
+    console.error('Error exporting search corpus:', error);
+    res.status(500).json({ error: error.message || 'Failed to export search corpus' });
+  }
+};
+

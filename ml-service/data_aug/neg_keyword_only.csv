@@ -1,0 +1,1201 @@
+text,label
+xss example,0
+stack overflow tutorial guide demo,0
+authentication bypass basics,0
+remote code execution best practices,0
+introduction to buffer overflow,0
+overview of rce,0
+buffer overflow fundamentals,0
+csrf best practices,0
+overview of csrf,0
+checking stack overflow functionality,0
+discussing sql injection in meeting,0
+today is a good day cors misconfiguration,0
+deserialization best practices,0
+planning open redirect feature development test,0
+introduction to xss,0
+reading documentation about information disclosure,0
+XsS ExAmPlE CoDe example,0
+xml external entity fundamentals demo,0
+xml external entity,0
+today is a good day deserialization,0
+remote code execution basics,0
+discussing sqli in meeting,0
+information disclosure,0
+remote code execution best practices check,0
+directory traversal test case,0
+introduction to privilege escalation,0
+this is a test for session fixation,0
+reading documentation about cross site scripting,0
+this is a test for cors misconfiguration,0
+ThIs iS A TeSt fOr oPeN ReDiReCt,0
+considering buffer overflow as option,0
+this is a test for information disclosure,0
+overview of xxe,0
+discussing sql injection in meeting,0
+SeSsIoN FiXaTiOn eXaMpLe,0
+discussing xss in meeting,0
+Rce reference material,0
+discussing session fixation in meeting hello,0
+session fixation reference material check,0
+directory traversal test example,0
+this is a test for directory traversal,0
+privilege escalation basics test,0
+Ssrf fundamentals,0
+jwt reference material test,0
+today is a good day rce,0
+xxe,0
+introduction to xss,0
+privilege escalation basics,0
+introduction to sqli,0
+planning authorization bypass feature development,0
+THIS IS A TEST FOR RCE,0
+reviewing cross site scripting code changes,0
+considering information disclosure as option hello,0
+Discussing deserialization in meeting,0
+session fixation fundamentals,0
+ssrf reference material,0
+checking cross site scripting functionality,0
+checking directory traversal functionality,0
+considering sqli as option sample,0
+stack overflow test,0
+INTRODUCTION TO RCE,0
+introduction to session fixation,0
+buffer overflow best practices,0
+authentication bypass demo,0
+introduction to csrf,0
+open redirect example,0
+remote code execution fundamentals hello,0
+overview of xxe,0
+introduction to rce,0
+stack overflow example code,0
+Overview of xss,0
+considering sqli as option,0
+Today is a good day jwt,0
+cors misconfiguration demo test,0
+rce test case,0
+xml external entity,0
+reviewing xml external entity code changes,0
+authorization bypass test case,0
+this is a test for cors misconfiguration,0
+cors misconfiguration basics,0
+rce demo,0
+hardcoded secret example code,0
+xss test case,0
+ssrf demo hello,0
+considering hardcoded secret as option,0
+planning cross site scripting feature development,0
+remote code execution example code,0
+rce test hello,0
+learning about jwt concepts,0
+xss sample,0
+xml external entity test,0
+working on jwt implementation,0
+REVIEWING CLICKJACKING CODE CHANGES,0
+Session fixation test,0
+introduction to clickjacking,0
+working on cross site scripting implementation,0
+today is a good day buffer overflow,0
+Rce test case,0
+stack overflow reference material,0
+PLANNING SSRF FEATURE DEVELOPMENT,0
+path traversal example check,0
+considering hardcoded secret as option sample,0
+information disclosure test case hello,0
+XmL ExTeRnAl eNtItY BaSiCs demo,0
+discussing directory traversal in meeting,0
+open redirect fundamentals,0
+buffer overflow test case,0
+ClIcKjAcKiNg eXaMpLe,0
+sqli fundamentals,0
+overview of clickjacking,0
+Reading documentation about remote code execution,0
+discussing directory traversal in meeting,0
+hardcoded secret test case demo,0
+sql injection example code,0
+buffer overflow example code hello,0
+directory traversal fundamentals,0
+checking open redirect functionality,0
+directory traversal demo,0
+discussing authorization bypass in meeting,0
+learning about stack overflow concepts,0
+hardcoded secret best practices,0
+READING DOCUMENTATION ABOUT SESSION FIXATION,0
+session fixation demo example,0
+xxe test case,0
+considering ssrf as option hello,0
+introduction to clickjacking,0
+overview of xml external entity test,0
+overview of privilege escalation,0
+reviewing clickjacking code changes,0
+information disclosure demo,0
+considering stack overflow as option,0
+buffer overflow best practices,0
+SqLi dEmO,0
+this is a test for buffer overflow,0
+today is a good day cross site scripting,0
+working on path traversal implementation,0
+remote code execution best practices,0
+stack overflow fundamentals,0
+learning about authorization bypass concepts,0
+rce example,0
+reviewing deserialization code changes hello,0
+ToDaY Is a gOoD DaY OpEn rEdIrEcT,0
+ChEcKiNg cSrF FuNcTiOnAlItY,0
+hardcoded secret fundamentals,0
+ssrf reference material,0
+xxe tutorial guide example,0
+xss demo,0
+Session fixation test hello,0
+privilege escalation demo,0
+Checking session fixation functionality,0
+sqli test demo,0
+open redirect basics check,0
+authorization bypass demo sample,0
+today is a good day authorization bypass,0
+xml external entity demo,0
+CONSIDERING HARDCODED SECRET AS OPTION,0
+considering information disclosure as option,0
+overview of cross site scripting hello,0
+considering clickjacking as option,0
+BUFFER OVERFLOW,0
+Planning command injection feature development,0
+today is a good day command injection,0
+reviewing privilege escalation code changes,0
+planning ssrf feature development,0
+ssrf test,0
+reviewing sqli code changes,0
+xml external entity best practices,0
+Overview of xxe sample,0
+WoRkInG On jWt iMpLeMeNtAtIoN,0
+buffer overflow,0
+reading documentation about authorization bypass,0
+PlAnNiNg xMl eXtErNaL EnTiTy fEaTuRe dEvElOpMeNt demo,0
+directory traversal basics,0
+working on cross site scripting implementation,0
+introduction to deserialization,0
+PLANNING STACK OVERFLOW FEATURE DEVELOPMENT,0
+privilege escalation tutorial guide,0
+remote code execution basics sample,0
+clickjacking fundamentals,0
+XSS BASICS hello,0
+working on authentication bypass implementation,0
+CONSIDERING CORS MISCONFIGURATION AS OPTION hello,0
+introduction to cross site scripting,0
+OVERVIEW OF INFORMATION DISCLOSURE example,0
+csrf tutorial guide,0
+discussing privilege escalation in meeting,0
+considering command injection as option,0
+open redirect reference material,0
+deserialization fundamentals,0
+PLANNING STACK OVERFLOW FEATURE DEVELOPMENT,0
+cross site scripting tutorial guide,0
+PLANNING COMMAND INJECTION FEATURE DEVELOPMENT,0
+introduction to rce,0
+reviewing sql injection code changes,0
+OvErViEw oF InFoRmAtIoN DiScLoSuRe,0
+This is a test for sql injection,0
+XSS,0
+Clickjacking tutorial guide,0
+today is a good day privilege escalation,0
+xml external entity,0
+checking jwt functionality check,0
+Jwt,0
+BUFFER OVERFLOW TUTORIAL GUIDE,0
+checking stack overflow functionality,0
+OVERVIEW OF BUFFER OVERFLOW,0
+LeArNiNg aBoUt cLiCkJaCkInG CoNcEpTs,0
+open redirect fundamentals check,0
+learning about xxe concepts example,0
+remote code execution,0
+considering open redirect as option,0
+hardcoded secret reference material sample,0
+cross site scripting test case hello,0
+overview of rce,0
+clickjacking example,0
+reviewing cross site scripting code changes example,0
+reading documentation about cross site scripting test,0
+this is a test for open redirect,0
+sql injection reference material,0
+working on sqli implementation test,0
+deserialization test case,0
+clickjacking tutorial guide,0
+privilege escalation example,0
+discussing privilege escalation in meeting test,0
+Jwt best practices,0
+reading documentation about xxe hello,0
+overview of hardcoded secret,0
+XSS hello,0
+overview of session fixation,0
+session fixation,0
+planning open redirect feature development,0
+introduction to ssrf,0
+session fixation sample,0
+path traversal best practices example,0
+introduction to sql injection,0
+authorization bypass test,0
+working on rce implementation,0
+XML EXTERNAL ENTITY sample,0
+learning about buffer overflow concepts,0
+HARDCODED SECRET REFERENCE MATERIAL,0
+discussing ssrf in meeting,0
+checking sql injection functionality,0
+privilege escalation demo check,0
+reading documentation about stack overflow,0
+reading documentation about sql injection,0
+ReAdInG DoCuMeNtAtIoN AbOuT DiReCtOrY TrAvErSaL demo,0
+learning about csrf concepts,0
+directory traversal example code,0
+learning about command injection concepts example,0
+PlAnNiNg cRoSs sItE ScRiPtInG FeAtUrE DeVeLoPmEnT,0
+Ssrf test case,0
+overview of hardcoded secret,0
+privilege escalation example example,0
+learning about xml external entity concepts,0
+today is a good day command injection,0
+reading documentation about remote code execution,0
+reviewing privilege escalation code changes,0
+ThIs iS A TeSt fOr dEsErIaLiZaTiOn,0
+this is a test for authentication bypass,0
+hardcoded secret fundamentals,0
+checking remote code execution functionality check,0
+Learning about deserialization concepts,0
+today is a good day sqli,0
+session fixation reference material,0
+xss reference material check,0
+discussing directory traversal in meeting,0
+xxe fundamentals,0
+sqli tutorial guide,0
+considering cross site scripting as option,0
+information disclosure example,0
+checking clickjacking functionality,0
+cross site scripting test,0
+working on cross site scripting implementation,0
+cross site scripting example code,0
+checking session fixation functionality,0
+CSRF TEST CASE,0
+cors misconfiguration demo,0
+reading documentation about jwt,0
+authentication bypass basics sample,0
+path traversal reference material,0
+sql injection,0
+considering authorization bypass as option,0
+clickjacking fundamentals,0
+learning about sqli concepts,0
+sqli tutorial guide,0
+WORKING ON SQLI IMPLEMENTATION,0
+reviewing xml external entity code changes,0
+today is a good day open redirect,0
+deserialization reference material test,0
+today is a good day sqli,0
+overview of authentication bypass,0
+overview of open redirect,0
+clickjacking fundamentals,0
+considering xxe as option,0
+discussing buffer overflow in meeting,0
+considering path traversal as option sample,0
+buffer overflow reference material,0
+ssrf fundamentals test,0
+session fixation fundamentals,0
+Reading documentation about ssrf,0
+planning xxe feature development,0
+this is a test for session fixation,0
+csrf example code,0
+CONSIDERING AUTHORIZATION BYPASS AS OPTION,0
+reviewing xml external entity code changes,0
+today is a good day csrf,0
+authentication bypass test case,0
+buffer overflow demo,0
+cors misconfiguration reference material demo,0
+reviewing cross site scripting code changes hello,0
+introduction to directory traversal,0
+sqli test case,0
+PLANNING REMOTE CODE EXECUTION FEATURE DEVELOPMENT,0
+xxe basics example,0
+learning about directory traversal concepts,0
+this is a test for authentication bypass,0
+csrf fundamentals,0
+Today is a good day path traversal,0
+XxE ExAmPlE,0
+DeSeRiAlIzAtIoN ReFeReNcE MaTeRiAl,0
+reviewing deserialization code changes,0
+learning about csrf concepts,0
+AuThEnTiCaTiOn bYpAsS TeSt cAsE demo,0
+planning open redirect feature development,0
+session fixation demo test,0
+considering directory traversal as option sample,0
+considering privilege escalation as option,0
+today is a good day remote code execution sample,0
+overview of open redirect,0
+buffer overflow best practices sample,0
+checking xml external entity functionality,0
+xml external entity demo,0
+clickjacking,0
+path traversal test sample,0
+Ssrf demo,0
+reviewing session fixation code changes sample,0
+overview of deserialization,0
+considering buffer overflow as option,0
+learning about authentication bypass concepts hello,0
+discussing information disclosure in meeting,0
+Considering clickjacking as option example,0
+Reviewing path traversal code changes,0
+xml external entity best practices,0
+learning about sql injection concepts,0
+hardcoded secret example,0
+authentication bypass example,0
+working on hardcoded secret implementation,0
+reviewing sql injection code changes,0
+buffer overflow fundamentals,0
+information disclosure test,0
+CONSIDERING SESSION FIXATION AS OPTION,0
+reviewing session fixation code changes,0
+reviewing rce code changes,0
+WoRkInG On jWt iMpLeMeNtAtIoN,0
+LEARNING ABOUT CROSS SITE SCRIPTING CONCEPTS,0
+THIS IS A TEST FOR COMMAND INJECTION,0
+working on hardcoded secret implementation,0
+discussing rce in meeting test,0
+planning cors misconfiguration feature development,0
+ssrf test,0
+AUTHENTICATION BYPASS DEMO,0
+learning about session fixation concepts example,0
+working on xss implementation,0
+session fixation,0
+xxe basics sample,0
+directory traversal best practices,0
+JWT TEST CASE,0
+xml external entity example code,0
+checking cross site scripting functionality sample,0
+introduction to xxe,0
+reading documentation about xxe,0
+learning about deserialization concepts,0
+hardcoded secret,0
+xss basics demo,0
+authentication bypass basics demo,0
+directory traversal fundamentals test,0
+sqli example code,0
+InFoRmAtIoN DiScLoSuRe tUtOrIaL GuIdE,0
+command injection fundamentals,0
+overview of jwt,0
+introduction to clickjacking,0
+PlAnNiNg aUtHeNtIcAtIoN ByPaSs fEaTuRe dEvElOpMeNt sample,0
+xml external entity check,0
+checking cross site scripting functionality test,0
+introduction to directory traversal example,0
+working on information disclosure implementation,0
+authentication bypass,0
+clickjacking,0
+stack overflow example,0
+cross site scripting best practices demo,0
+stack overflow tutorial guide test,0
+authorization bypass basics,0
+discussing session fixation in meeting check,0
+directory traversal,0
+xml external entity basics,0
+xml external entity hello,0
+planning directory traversal feature development,0
+information disclosure basics,0
+THIS IS A TEST FOR STACK OVERFLOW sample,0
+Path traversal demo,0
+deserialization example code,0
+cross site scripting basics,0
+checking privilege escalation functionality sample,0
+Sql injection test case check,0
+deserialization demo,0
+xss fundamentals sample,0
+directory traversal demo,0
+hardcoded secret,0
+authentication bypass basics,0
+PATH TRAVERSAL BEST PRACTICES,0
+LEARNING ABOUT AUTHORIZATION BYPASS CONCEPTS,0
+privilege escalation tutorial guide,0
+sqli fundamentals sample,0
+checking command injection functionality,0
+learning about deserialization concepts sample,0
+considering authentication bypass as option,0
+rce best practices,0
+xxe basics hello,0
+open redirect fundamentals demo,0
+rce basics,0
+planning xxe feature development,0
+information disclosure best practices,0
+CrOsS SiTe sCrIpTiNg tEsT test,0
+cors misconfiguration basics,0
+deserialization test case,0
+learning about open redirect concepts,0
+overview of buffer overflow,0
+reviewing sql injection code changes,0
+buffer overflow reference material,0
+overview of deserialization,0
+Reviewing command injection code changes,0
+overview of ssrf,0
+TODAY IS A GOOD DAY XML EXTERNAL ENTITY,0
+checking buffer overflow functionality,0
+path traversal basics check,0
+READING DOCUMENTATION ABOUT CSRF,0
+PRIVILEGE ESCALATION TEST,0
+sql injection test case,0
+reading documentation about directory traversal,0
+Discussing sql injection in meeting,0
+Command injection demo,0
+sql injection test case,0
+planning remote code execution feature development,0
+path traversal,0
+overview of xss,0
+cors misconfiguration basics check,0
+planning remote code execution feature development,0
+session fixation example code,0
+reading documentation about authorization bypass,0
+planning directory traversal feature development,0
+reading documentation about jwt,0
+open redirect test case,0
+THIS IS A TEST FOR DESERIALIZATION,0
+xml external entity,0
+stack overflow fundamentals,0
+discussing sql injection in meeting,0
+path traversal best practices,0
+cors misconfiguration test case hello,0
+OvErViEw oF OpEn rEdIrEcT,0
+today is a good day csrf,0
+stack overflow demo,0
+overview of session fixation,0
+clickjacking best practices,0
+Reviewing xml external entity code changes,0
+checking rce functionality demo,0
+READING DOCUMENTATION ABOUT PRIVILEGE ESCALATION,0
+introduction to open redirect,0
+learning about xxe concepts example,0
+INTRODUCTION TO DESERIALIZATION,0
+SsRf dEmO,0
+xxe basics,0
+learning about rce concepts,0
+considering command injection as option,0
+learning about deserialization concepts,0
+buffer overflow basics,0
+Today is a good day csrf,0
+reading documentation about xxe,0
+checking xxe functionality,0
+session fixation tutorial guide,0
+session fixation best practices,0
+Sql injection example,0
+xml external entity example code,0
+introduction to hardcoded secret,0
+planning xss feature development,0
+directory traversal basics,0
+this is a test for authorization bypass,0
+authentication bypass,0
+checking csrf functionality,0
+PLANNING CSRF FEATURE DEVELOPMENT,0
+planning xml external entity feature development,0
+planning buffer overflow feature development,0
+command injection test,0
+stack overflow check,0
+open redirect reference material test,0
+CrOsS SiTe sCrIpTiNg,0
+this is a test for xml external entity,0
+authorization bypass check,0
+working on csrf implementation,0
+discussing buffer overflow in meeting,0
+command injection demo,0
+today is a good day privilege escalation,0
+ChEcKiNg dEsErIaLiZaTiOn fUnCtIoNaLiTy,0
+TODAY IS A GOOD DAY STACK OVERFLOW,0
+working on privilege escalation implementation hello,0
+xxe fundamentals,0
+introduction to command injection,0
+overview of cross site scripting,0
+CORS MISCONFIGURATION DEMO,0
+buffer overflow test case,0
+introduction to authorization bypass,0
+reading documentation about ssrf,0
+today is a good day sqli demo,0
+overview of buffer overflow,0
+considering sql injection as option,0
+considering hardcoded secret as option,0
+Path traversal basics,0
+xml external entity reference material,0
+introduction to privilege escalation,0
+hardcoded secret example code,0
+Checking deserialization functionality,0
+reading documentation about clickjacking,0
+xml external entity test,0
+buffer overflow reference material,0
+considering xml external entity as option,0
+reading documentation about buffer overflow,0
+CROSS SITE SCRIPTING EXAMPLE,0
+authentication bypass best practices,0
+cors misconfiguration demo,0
+checking privilege escalation functionality check,0
+clickjacking reference material,0
+checking cross site scripting functionality,0
+stack overflow demo,0
+introduction to xxe,0
+DISCUSSING HARDCODED SECRET IN MEETING,0
+planning information disclosure feature development example,0
+today is a good day xss check,0
+xml external entity reference material,0
+introduction to cors misconfiguration,0
+information disclosure example code,0
+clickjacking tutorial guide test,0
+LEARNING ABOUT XSS CONCEPTS,0
+today is a good day rce,0
+overview of deserialization,0
+considering sqli as option demo,0
+working on xss implementation,0
+xxe,0
+ReAdInG DoCuMeNtAtIoN AbOuT PrIvIlEgE EsCaLaTiOn hello,0
+overview of sql injection,0
+deserialization,0
+CoNsIdErInG AuThOrIzAtIoN ByPaSs aS OpTiOn,0
+introduction to privilege escalation,0
+reading documentation about xml external entity,0
+deserialization demo check,0
+Deserialization,0
+today is a good day deserialization,0
+reading documentation about xxe,0
+clickjacking test case,0
+session fixation basics,0
+cors misconfiguration fundamentals,0
+overview of clickjacking,0
+discussing hardcoded secret in meeting,0
+checking cors misconfiguration functionality test,0
+introduction to ssrf,0
+CONSIDERING XML EXTERNAL ENTITY AS OPTION,0
+planning path traversal feature development example,0
+checking cross site scripting functionality test,0
+Sql injection example,0
+hardcoded secret example code,0
+planning authorization bypass feature development,0
+introduction to authentication bypass,0
+xxe reference material,0
+introduction to sql injection,0
+SQL INJECTION EXAMPLE hello,0
+Rce example code,0
+jwt test,0
+overview of csrf,0
+learning about sql injection concepts,0
+ToDaY Is a gOoD DaY JwT,0
+Discussing authentication bypass in meeting,0
+deserialization example code,0
+jwt test,0
+hardcoded secret best practices,0
+xxe test,0
+XSS REFERENCE MATERIAL,0
+Checking authentication bypass functionality,0
+discussing jwt in meeting,0
+cross site scripting basics example,0
+overview of cross site scripting,0
+considering authentication bypass as option,0
+session fixation example,0
+Stack overflow example code,0
+reviewing information disclosure code changes,0
+rce example,0
+xxe fundamentals,0
+open redirect tutorial guide,0
+this is a test for sqli,0
+reviewing cors misconfiguration code changes,0
+checking rce functionality,0
+OVERVIEW OF STACK OVERFLOW,0
+Authorization bypass demo,0
+working on authentication bypass implementation,0
+overview of command injection check,0
+SQL INJECTION REFERENCE MATERIAL,0
+remote code execution demo,0
+open redirect basics,0
+considering path traversal as option,0
+reading documentation about authentication bypass,0
+PaTh tRaVeRsAl rEfErEnCe mAtErIaL,0
+checking sqli functionality,0
+checking xxe functionality,0
+privilege escalation example,0
+command injection demo,0
+xxe fundamentals,0
+discussing deserialization in meeting,0
+reviewing xxe code changes,0
+working on authentication bypass implementation,0
+discussing cross site scripting in meeting,0
+introduction to sql injection sample,0
+considering privilege escalation as option sample,0
+CONSIDERING PATH TRAVERSAL AS OPTION,0
+csrf demo,0
+CoNsIdErInG BuFfEr oVeRfLoW As oPtIoN example,0
+checking path traversal functionality,0
+considering privilege escalation as option,0
+hardcoded secret tutorial guide,0
+reviewing information disclosure code changes,0
+xxe reference material check,0
+checking stack overflow functionality,0
+DeSeRiAlIzAtIoN TuToRiAl gUiDe,0
+cross site scripting basics,0
+checking open redirect functionality,0
+overview of privilege escalation,0
+OVERVIEW OF AUTHORIZATION BYPASS example,0
+authorization bypass demo,0
+learning about authentication bypass concepts,0
+working on xss implementation,0
+planning xss feature development,0
+session fixation demo,0
+information disclosure test case hello,0
+STACK OVERFLOW BEST PRACTICES,0
+STACK OVERFLOW TUTORIAL GUIDE,0
+discussing authorization bypass in meeting,0
+reviewing sqli code changes,0
+this is a test for ssrf,0
+XsS FuNdAmEnTaLs test,0
+DESERIALIZATION TEST CASE test,0
+introduction to jwt,0
+jwt test hello,0
+stack overflow reference material hello,0
+OVERVIEW OF DESERIALIZATION,0
+privilege escalation basics,0
+deserialization reference material,0
+csrf example code test,0
+authorization bypass best practices,0
+today is a good day cross site scripting,0
+considering information disclosure as option hello,0
+planning xml external entity feature development,0
+directory traversal example code,0
+CONSIDERING AUTHENTICATION BYPASS AS OPTION,0
+directory traversal fundamentals,0
+Command injection best practices,0
+OvErViEw oF StAcK OvErFlOw,0
+clickjacking test case,0
+information disclosure test case,0
+introduction to xss,0
+discussing clickjacking in meeting,0
+session fixation,0
+overview of hardcoded secret,0
+clickjacking reference material,0
+introduction to directory traversal check,0
+working on xss implementation,0
+TODAY IS A GOOD DAY XXE,0
+clickjacking fundamentals example,0
+considering open redirect as option,0
+XmL ExTeRnAl eNtItY ExAmPlE CoDe,0
+introduction to session fixation,0
+Open redirect tutorial guide,0
+discussing xml external entity in meeting,0
+privilege escalation basics,0
+SQLI DEMO example,0
+remote code execution test,0
+today is a good day clickjacking,0
+InTrOdUcTiOn tO AuThOrIzAtIoN ByPaSs demo,0
+open redirect basics sample,0
+DeSeRiAlIzAtIoN BeSt pRaCtIcEs,0
+this is a test for authentication bypass,0
+command injection best practices,0
+learning about directory traversal concepts,0
+today is a good day hardcoded secret,0
+session fixation best practices,0
+discussing rce in meeting check,0
+today is a good day sql injection,0
+overview of privilege escalation,0
+working on remote code execution implementation,0
+cross site scripting test case,0
+introduction to sqli,0
+open redirect reference material hello,0
+cross site scripting tutorial guide,0
+ReViEwInG SqLi cOdE ChAnGeS example,0
+OPEN REDIRECT BEST PRACTICES,0
+buffer overflow tutorial guide,0
+reading documentation about deserialization,0
+today is a good day information disclosure,0
+introduction to deserialization,0
+today is a good day clickjacking,0
+WORKING ON RCE IMPLEMENTATION,0
+Rce demo,0
+introduction to xml external entity,0
+This is a test for hardcoded secret,0
+overview of authentication bypass,0
+Reviewing authorization bypass code changes,0
+buffer overflow example code,0
+clickjacking basics,0
+this is a test for authorization bypass test,0
+learning about open redirect concepts,0
+clickjacking,0
+information disclosure fundamentals,0
+Introduction to stack overflow demo,0
+this is a test for hardcoded secret,0
+reading documentation about open redirect,0
+reading documentation about rce,0
+stack overflow tutorial guide,0
+Xss example code hello,0
+considering csrf as option,0
+JWT EXAMPLE CODE sample,0
+reading documentation about ssrf,0
+stack overflow example sample,0
+today is a good day sql injection check,0
+working on hardcoded secret implementation,0
+reading documentation about xxe,0
+ssrf test,0
+deserialization fundamentals,0
+LeArNiNg aBoUt cSrF CoNcEpTs,0
+introduction to stack overflow,0
+introduction to cross site scripting,0
+reviewing buffer overflow code changes sample,0
+csrf test,0
+checking rce functionality,0
+ChEcKiNg iNfOrMaTiOn dIsClOsUrE FuNcTiOnAlItY,0
+open redirect test,0
+ssrf test case,0
+xml external entity fundamentals,0
+privilege escalation tutorial guide,0
+this is a test for open redirect,0
+ReMoTe cOdE ExEcUtIoN TuToRiAl gUiDe,0
+discussing privilege escalation in meeting,0
+CHECKING AUTHORIZATION BYPASS FUNCTIONALITY,0
+AUTHENTICATION BYPASS EXAMPLE CODE,0
+information disclosure test case,0
+deserialization example code,0
+today is a good day directory traversal,0
+sqli example code,0
+authentication bypass test sample,0
+Working on remote code execution implementation test,0
+learning about stack overflow concepts,0
+cors misconfiguration basics example,0
+csrf fundamentals,0
+Considering xss as option,0
+directory traversal tutorial guide,0
+xss,0
+csrf tutorial guide,0
+authentication bypass demo,0
+cors misconfiguration reference material test,0
+deserialization fundamentals,0
+today is a good day authorization bypass,0
+considering csrf as option check,0
+PaTh tRaVeRsAl tEsT CaSe,0
+directory traversal fundamentals,0
+xss demo,0
+csrf test case,0
+information disclosure demo,0
+RcE TuToRiAl gUiDe hello,0
+stack overflow demo,0
+checking buffer overflow functionality check,0
+information disclosure demo,0
+LEARNING ABOUT BUFFER OVERFLOW CONCEPTS,0
+Path traversal test,0
+DESERIALIZATION TUTORIAL GUIDE demo,0
+checking xml external entity functionality,0
+reviewing rce code changes,0
+session fixation basics,0
+BuFfEr oVeRfLoW DeMo,0
+reviewing xss code changes,0
+reading documentation about information disclosure,0
+xml external entity reference material hello,0
+overview of buffer overflow,0
+session fixation fundamentals,0
+discussing hardcoded secret in meeting example,0
+cors misconfiguration best practices,0
+ssrf fundamentals,0
+reading documentation about cross site scripting check,0
+considering authorization bypass as option check,0
+learning about cors misconfiguration concepts,0
+Jwt example hello,0
+authentication bypass test case test,0
+this is a test for authentication bypass check,0
+clickjacking reference material,0
+Rce tutorial guide test,0
+stack overflow basics,0
+checking sqli functionality,0
+reviewing xxe code changes,0
+discussing ssrf in meeting,0
+CoNsIdErInG SsRf aS OpTiOn check,0
+today is a good day jwt sample,0
+learning about ssrf concepts,0
+learning about authorization bypass concepts check,0
+hardcoded secret test,0
+sql injection tutorial guide,0
+ToDaY Is a gOoD DaY InFoRmAtIoN DiScLoSuRe,0
+remote code execution example code hello,0
+today is a good day deserialization,0
+rce basics,0
+sql injection basics example,0
+sql injection test case,0
+learning about information disclosure concepts,0
+WORKING ON DESERIALIZATION IMPLEMENTATION,0
+today is a good day ssrf,0
+learning about directory traversal concepts sample,0
+introduction to open redirect test,0
+considering deserialization as option,0
+sql injection fundamentals,0
+DISCUSSING PRIVILEGE ESCALATION IN MEETING,0
+open redirect fundamentals,0
+jwt fundamentals,0
+session fixation test case,0
+SqLi tEsT CaSe,0
+reading documentation about open redirect,0
+READING DOCUMENTATION ABOUT XSS,0
+cors misconfiguration best practices,0
+reviewing cross site scripting code changes,0
+CSRF TUTORIAL GUIDE,0
+introduction to cors misconfiguration,0
+REVIEWING STACK OVERFLOW CODE CHANGES,0
+overview of deserialization,0
+remote code execution test case,0
+cross site scripting basics,0
+reading documentation about session fixation,0
+discussing stack overflow in meeting demo,0
+learning about sqli concepts,0
+checking csrf functionality,0
+sqli best practices,0
+learning about cors misconfiguration concepts,0
+considering buffer overflow as option,0
+planning rce feature development,0
+path traversal tutorial guide,0
+deserialization test,0
+CsRf,0
+considering sqli as option check,0
+planning ssrf feature development,0
+buffer overflow tutorial guide,0
+reviewing stack overflow code changes test,0
+today is a good day xss,0
+path traversal,0
+directory traversal example code,0
+checking privilege escalation functionality hello,0
+DiReCtOrY TrAvErSaL DeMo,0
+jwt example code,0
+session fixation example code,0
+READING DOCUMENTATION ABOUT DESERIALIZATION,0
+overview of path traversal check,0
+ReViEwInG OpEn rEdIrEcT CoDe cHaNgEs,0
+planning csrf feature development hello,0
+open redirect fundamentals,0
+checking privilege escalation functionality demo,0
+Ssrf best practices,0
+authorization bypass basics,0
+cors misconfiguration best practices,0
+working on sqli implementation,0
+reviewing path traversal code changes,0
+directory traversal fundamentals,0
+ToDaY Is a gOoD DaY XmL ExTeRnAl eNtItY,0
+considering open redirect as option sample,0
+SsRf fUnDaMeNtAlS hello,0
+xxe demo hello,0
+discussing cors misconfiguration in meeting demo,0
+overview of xxe check,0
+ChEcKiNg sSrF FuNcTiOnAlItY hello,0
+today is a good day stack overflow,0
+Working on clickjacking implementation,0
+xss basics,0
+learning about sql injection concepts example,0
+planning authentication bypass feature development,0
+introduction to stack overflow,0
+stack overflow test case,0
+clickjacking tutorial guide sample,0
+WoRkInG On sTaCk oVeRfLoW ImPlEmEnTaTiOn,0
+today is a good day csrf,0
+command injection fundamentals,0
+introduction to xxe,0
+authentication bypass best practices check,0
+today is a good day stack overflow,0
+hardcoded secret test case,0
+xml external entity tutorial guide,0
+path traversal best practices,0
+xml external entity basics,0
+cors misconfiguration tutorial guide,0
+authentication bypass demo,0
+reviewing cross site scripting code changes check,0
+AuThOrIzAtIoN ByPaSs rEfErEnCe mAtErIaL,0
+xml external entity basics,0
+ssrf basics check,0
+discussing xss in meeting,0
+Planning directory traversal feature development,0
+working on clickjacking implementation,0
+Open redirect,0
+Introduction to privilege escalation,0
+session fixation tutorial guide,0
+READING DOCUMENTATION ABOUT DESERIALIZATION,0
+checking sql injection functionality,0
+working on rce implementation sample,0
+directory traversal demo,0
+PrIvIlEgE EsCaLaTiOn eXaMpLe,0
+stack overflow example code,0
+csrf test,0
+SqL InJeCtIoN TuToRiAl gUiDe,0
+reading documentation about buffer overflow,0
+CONSIDERING INFORMATION DISCLOSURE AS OPTION,0
+buffer overflow test check,0
+privilege escalation,0
+buffer overflow fundamentals sample,0
+csrf fundamentals,0
+discussing cross site scripting in meeting,0
+buffer overflow basics hello,0
+authorization bypass tutorial guide,0
+path traversal tutorial guide,0
+considering buffer overflow as option example,0
+WORKING ON DIRECTORY TRAVERSAL IMPLEMENTATION,0
+considering session fixation as option test,0
+xxe fundamentals,0
+learning about rce concepts check,0
+xss example code,0
+reviewing clickjacking code changes,0
+discussing clickjacking in meeting demo,0
+This is a test for ssrf,0
+overview of csrf,0
+reading documentation about sql injection,0
+discussing information disclosure in meeting,0
+session fixation basics,0
+OpEn rEdIrEcT TuToRiAl gUiDe,0
+WoRkInG On sQl iNjEcTiOn iMpLeMeNtAtIoN,0
+ReAdInG DoCuMeNtAtIoN AbOuT AuThEnTiCaTiOn bYpAsS,0
+working on cors misconfiguration implementation demo,0
+open redirect fundamentals,0
+sql injection test case,0
+today is a good day session fixation,0
+hardcoded secret test,0
+privilege escalation example,0
+learning about sql injection concepts,0
+introduction to ssrf demo,0
+hardcoded secret test case,0
+Discussing open redirect in meeting,0
+checking cross site scripting functionality,0
+PATH TRAVERSAL EXAMPLE,0
+cross site scripting test,0
+AuThOrIzAtIoN ByPaSs rEfErEnCe mAtErIaL,0
+authentication bypass example code,0
+working on session fixation implementation hello,0
+reviewing rce code changes,0
+Information disclosure example,0
+introduction to cors misconfiguration,0
+command injection tutorial guide demo,0
+planning sqli feature development,0
+Csrf example,0
+Overview of session fixation,0
+open redirect test,0
+csrf test case,0
+Introduction to xss hello,0
+clickjacking example,0
+sqli example code,0
+READING DOCUMENTATION ABOUT CSRF,0
+remote code execution tutorial guide,0
+discussing sql injection in meeting,0
+Privilege escalation,0
+BUFFER OVERFLOW EXAMPLE,0
+ssrf test case,0
+path traversal basics,0
+information disclosure tutorial guide hello,0
+clickjacking test,0
+csrf tutorial guide,0
+overview of cors misconfiguration,0
+remote code execution basics,0
+ssrf reference material,0
+CoNsIdErInG AuThEnTiCaTiOn bYpAsS As oPtIoN,0
+reading documentation about session fixation,0
+buffer overflow best practices,0
+checking open redirect functionality,0
+Ssrf demo,0
+today is a good day xml external entity,0
+reviewing authentication bypass code changes,0
+clickjacking example,0
+learning about information disclosure concepts,0
+session fixation best practices,0
+remote code execution basics,0
+authentication bypass basics,0
+ssrf basics,0
+discussing remote code execution in meeting,0
+cross site scripting best practices hello,0
+STACK OVERFLOW BASICS,0
+CONSIDERING XML EXTERNAL ENTITY AS OPTION,0
+Privilege escalation tutorial guide,0
+open redirect test demo,0
+INFORMATION DISCLOSURE,0
+considering stack overflow as option check,0
+ssrf tutorial guide demo,0
+checking rce functionality,0
+working on deserialization implementation check,0
+reading documentation about command injection,0
+path traversal best practices,0
+working on command injection implementation,0
+DiScUsSiNg xXe iN MeEtInG check,0
+WORKING ON RCE IMPLEMENTATION demo,0
+cors misconfiguration test case test,0
+xml external entity basics demo,0
+authorization bypass,0
+stack overflow tutorial guide,0
+REVIEWING DIRECTORY TRAVERSAL CODE CHANGES,0
+reviewing csrf code changes check,0
+this is a test for remote code execution,0
+today is a good day information disclosure,0
+checking xml external entity functionality,0
+Csrf test,0
+CoMmAnD InJeCtIoN FuNdAmEnTaLs check,0
+working on hardcoded secret implementation,0
+learning about ssrf concepts,0
+reviewing open redirect code changes,0
+learning about command injection concepts,0
+LEARNING ABOUT INFORMATION DISCLOSURE CONCEPTS,0
+considering authentication bypass as option,0
+remote code execution test case demo,0
+this is a test for open redirect,0
+command injection example code,0
+DISCUSSING CROSS SITE SCRIPTING IN MEETING,0
+Learning about stack overflow concepts,0
+SqL InJeCtIoN BeSt pRaCtIcEs,0
+WORKING ON BUFFER OVERFLOW IMPLEMENTATION,0
+reviewing jwt code changes,0
+path traversal demo,0
+PlAnNiNg oPeN ReDiReCt fEaTuRe dEvElOpMeNt hello,0
+overview of csrf example,0
+LeArNiNg aBoUt oPeN ReDiReCt cOnCePtS,0
+sqli example,0
+learning about xml external entity concepts test,0
+rce best practices,0
+jwt example,0
+overview of xxe,0
+sqli,0
+Today is a good day authentication bypass,0
+CONSIDERING CSRF AS OPTION,0
+learning about session fixation concepts,0
+clickjacking example,0
+ssrf reference material,0
+jwt tutorial guide,0
+today is a good day ssrf,0
+xss test,0
+planning authentication bypass feature development,0
+planning session fixation feature development hello,0
+reading documentation about authorization bypass,0
+REVIEWING COMMAND INJECTION CODE CHANGES,0
+learning about remote code execution concepts sample,0
+introduction to open redirect,0
+session fixation example,0
+considering information disclosure as option hello,0
+reading documentation about path traversal,0
+today is a good day command injection,0
+JwT DeMo,0
+overview of command injection,0
+reading documentation about xxe,0
+open redirect tutorial guide,0
+DeSeRiAlIzAtIoN ExAmPlE CoDe test,0
+discussing xxe in meeting example,0
+discussing xml external entity in meeting test,0
+ssrf tutorial guide test,0
+SqLi bEsT PrAcTiCeS example,0
+today is a good day csrf,0
+working on xss implementation,0
+THIS IS A TEST FOR OPEN REDIRECT,0
+INTRODUCTION TO OPEN REDIRECT,0
+sql injection example,0
+ChEcKiNg sEsSiOn fIxAtIoN FuNcTiOnAlItY,0
+discussing xxe in meeting,0
+this is a test for remote code execution,0
+WORKING ON AUTHORIZATION BYPASS IMPLEMENTATION sample,0
+sql injection test,0
+ReAdInG DoCuMeNtAtIoN AbOuT XsS,0
+OvErViEw oF PaTh tRaVeRsAl,0
+working on session fixation implementation,0
+working on remote code execution implementation,0
+introduction to sqli,0
+this is a test for sqli example,0
+InTrOdUcTiOn tO StAcK OvErFlOw check,0
+considering clickjacking as option,0
+planning sql injection feature development,0
+command injection fundamentals,0
+overview of csrf,0
+cors misconfiguration demo,0
+Planning cors misconfiguration feature development,0
+ssrf tutorial guide,0
+xml external entity fundamentals,0
+open redirect test case,0
+authorization bypass,0
+reading documentation about authorization bypass,0
+deserialization test,0
+reading documentation about cors misconfiguration,0
+learning about xss concepts example,0
+reviewing xml external entity code changes sample,0
+reviewing path traversal code changes,0
+authorization bypass best practices test,0
+sql injection fundamentals,0
+xss fundamentals,0
+working on session fixation implementation example,0
+today is a good day ssrf hello,0
+xss demo,0
+discussing jwt in meeting example,0
+considering session fixation as option,0
+overview of xxe,0
+this is a test for csrf test,0
+DiScUsSiNg aUtHeNtIcAtIoN ByPaSs iN MeEtInG,0
+xxe example,0
+privilege escalation test,0
+planning ssrf feature development,0
+learning about csrf concepts demo,0
+ssrf example check,0
+xxe,0
+Discussing directory traversal in meeting,0
+PLANNING RCE FEATURE DEVELOPMENT,0
+Jwt test case hello,0
+learning about sqli concepts,0
+learning about buffer overflow concepts,0
+READING DOCUMENTATION ABOUT CROSS SITE SCRIPTING,0
+Hardcoded secret sample,0
+xss example code,0
+learning about authentication bypass concepts,0
+reviewing path traversal code changes demo,0
+cors misconfiguration test demo,0
+xml external entity demo test,0
+csrf basics,0
+sqli fundamentals,0
+reviewing open redirect code changes example,0
+introduction to authentication bypass,0
+stack overflow reference material,0
+introduction to path traversal,0
+session fixation basics,0
+introduction to information disclosure,0
+working on xml external entity implementation sample,0
+checking authorization bypass functionality,0
+Considering ssrf as option,0
+ChEcKiNg pAtH TrAvErSaL FuNcTiOnAlItY,0
+planning xml external entity feature development,0
+working on csrf implementation,0
+considering path traversal as option,0
+reviewing clickjacking code changes,0
+information disclosure test case,0
+AUTHENTICATION BYPASS REFERENCE MATERIAL,0
+this is a test for open redirect,0
+TODAY IS A GOOD DAY AUTHORIZATION BYPASS,0
+ssrf demo demo,0
+XxE BaSiCs,0
+authorization bypass reference material,0
+Directory traversal best practices sample,0
+InFoRmAtIoN DiScLoSuRe demo,0
+CrOsS SiTe sCrIpTiNg eXaMpLe test,0
+StAcK OvErFlOw dEmO sample,0
+hardcoded secret best practices,0
+today is a good day rce,0
+planning command injection feature development hello,0
+CoMmAnD InJeCtIoN TuToRiAl gUiDe,0
+learning about authentication bypass concepts,0
+checking cross site scripting functionality,0
+Considering jwt as option,0
+xml external entity,0
+session fixation best practices,0
+today is a good day directory traversal,0
+checking rce functionality,0
+csrf test case,0
+CoRs mIsCoNfIgUrAtIoN TeSt cAsE,0
+XmL ExTeRnAl eNtItY TeSt cAsE,0
+today is a good day cors misconfiguration,0
+overview of csrf,0
+this is a test for sql injection,0
+discussing authorization bypass in meeting,0
+learning about rce concepts,0
+xss example code sample,0
+working on authentication bypass implementation,0
+xxe best practices,0
+authorization bypass best practices,0
+discussing sql injection in meeting,0
+InTrOdUcTiOn tO AuThOrIzAtIoN ByPaSs,0
+clickjacking fundamentals,0
+introduction to session fixation,0
+checking sql injection functionality check,0
+introduction to xss check,0
+introduction to jwt demo,0
+authentication bypass demo,0
+LeArNiNg aBoUt dEsErIaLiZaTiOn cOnCePtS,0
+learning about sql injection concepts,0
+path traversal reference material,0
+Session fixation tutorial guide,0
+Considering authentication bypass as option,0
+hardcoded secret best practices demo,0
+Today is a good day cross site scripting,0
+introduction to authentication bypass example,0

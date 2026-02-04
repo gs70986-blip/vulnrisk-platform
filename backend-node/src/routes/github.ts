@@ -9,6 +9,7 @@ router.use(authenticate);
 
 router.post('/fetch', githubController.fetchGitHubContent);
 router.post('/fetch-batch', githubController.batchFetchGitHubContent);
+router.get('/export-search-corpus', githubController.exportSearchCorpus);
 
 export default router;
 
