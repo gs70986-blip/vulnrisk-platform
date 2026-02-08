@@ -34,14 +34,14 @@ services:
       GITHUB_DISABLE_LOCAL_FILTER: 'true'
       GITHUB_TOKEN: ${GITHUB_TOKEN}
     ports:
-      - "3000:3000"
+      - "8000:3000"
     volumes:
       - ./data:/app/data
       - ./models:/app/models
       - ./models:/models:ro
       - ./backend-node/uploads:/app/uploads
       - ./backend-node/scripts:/app/scripts:ro
-    command: sh -c "npx prisma migrate deploy && npm start"
+    command: sh -c "npx prisma migrate deploy && node scripts/create-admin.js admin admin123 admin@example.com || true && npm start"
 
   ml-service:
     build:

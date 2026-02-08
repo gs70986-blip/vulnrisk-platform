@@ -339,25 +339,45 @@ export class PredictionService {
       },
     });
 
-    return predictions.map((pred) => ({
-      id: pred.id,
-      sampleId: pred.sampleId,
-      textDescription: pred.textDescription || '',
-      pVuln: pred.pVuln,
-      cvss: pred.cvss,
-      riskScore: pred.riskScore,
-      riskLevel: pred.riskLevel,
-      modelType: pred.model?.type || 'Unknown',
-      createdAt: pred.createdAt.toISOString(),
-    }));
+    return predictions.map((pred) => {
+      const meta = pred.metadata as any || {};
+      const severityProbs = meta.severityProbs || {};
+      
+      return {
+        id: pred.id,
+        sampleId: pred.sampleId,
+        textDescription: pred.textDescription || '',
+        pVuln: pred.pVuln,
+        cvss: pred.cvss,
+        riskScore: pred.riskScore,
+        riskLevel: pred.riskLevel,
+        modelType: pred.model?.type || 'Unknown',
+        createdAt: pred.createdAt.toISOString(),
+        // 新增字段
+        applicable: meta.applicable ?? true,
+        pApplicable: meta.pApplicable ?? null,
+        isClipped: meta.is_clipped || false,
+        severityLevel: meta.severityLevel ?? null,
+        severityProbsLow: severityProbs['Low'] ?? severityProbs['low'] ?? null,
+        severityProbsMedium: severityProbs['Medium'] ?? severityProbs['medium'] ?? null,
+        severityProbsHigh: severityProbs['High'] ?? severityProbs['high'] ?? null,
+        severityProbsCritical: severityProbs['Critical'] ?? severityProbs['critical'] ?? null,
+        reliability: meta.reliability || 'Medium',
+      };
+    });
   }
 
   async exportToCSV(predictions: any[]): Promise<string> {
     if (predictions.length === 0) {
-      return 'ID,Sample ID,Text Description,P(vuln),CVSS,Risk Score,Risk Level,Model Type,Created At\n';
+      return 'ID,Sample ID,Text Description,P(vuln),CVSS,Risk Score,Risk Level,Model Type,Created At,Applicable,pApplicable,Is Clipped,Severity Level,Severity Prob Low,Severity Prob Medium,Severity Prob High,Severity Prob Critical,Reliability\n';
     }
 
-    const headers = ['ID', 'Sample ID', 'Text Description', 'P(vuln)', 'CVSS', 'Risk Score', 'Risk Level', 'Model Type', 'Created At'];
+    const headers = [
+      'ID', 'Sample ID', 'Text Description', 'P(vuln)', 'CVSS', 'Risk Score', 'Risk Level', 
+      'Model Type', 'Created At', 'Applicable', 'pApplicable', 'Is Clipped', 'Severity Level',
+      'Severity Prob Low', 'Severity Prob Medium', 'Severity Prob High', 'Severity Prob Critical', 'Reliability'
+    ];
+    
     const rows = predictions.map((pred) => {
       const escapeCSV = (str: any) => {
         if (str === null || str === undefined) return '';
@@ -366,6 +386,12 @@ export class PredictionService {
           return `"${s.replace(/"/g, '""')}"`;
         }
         return s;
+      };
+
+      const formatProb = (val: any) => {
+        if (val === null || val === undefined) return '';
+        const num = typeof val === 'number' ? val : parseFloat(val);
+        return isNaN(num) ? '' : num.toFixed(4);
       };
 
       return [
@@ -378,6 +404,16 @@ export class PredictionService {
         escapeCSV(pred.riskLevel),
         escapeCSV(pred.modelType),
         escapeCSV(pred.createdAt),
+        // 新增列
+        escapeCSV(pred.applicable),
+        escapeCSV(pred.pApplicable?.toFixed(4) || ''),
+        escapeCSV(pred.isClipped),
+        escapeCSV(pred.severityLevel),
+        escapeCSV(formatProb(pred.severityProbsLow)),
+        escapeCSV(formatProb(pred.severityProbsMedium)),
+        escapeCSV(formatProb(pred.severityProbsHigh)),
+        escapeCSV(formatProb(pred.severityProbsCritical)),
+        escapeCSV(pred.reliability),
       ].join(',');
     });
 
@@ -386,6 +422,12 @@ export class PredictionService {
 
   async exportToExcel(predictions: any[]): Promise<Buffer> {
     const XLSX = require('xlsx');
+    
+    const formatProb = (val: any) => {
+      if (val === null || val === undefined) return '';
+      const num = typeof val === 'number' ? val : parseFloat(val);
+      return isNaN(num) ? '' : num.toFixed(4);
+    };
     
     const data = predictions.map((pred) => ({
       'ID': pred.id,
@@ -397,6 +439,16 @@ export class PredictionService {
       'Risk Level': pred.riskLevel,
       'Model Type': pred.modelType,
       'Created At': pred.createdAt,
+      // 新增列
+      'Applicable': pred.applicable,
+      'pApplicable': pred.pApplicable?.toFixed(4) || '',
+      'Is Clipped': pred.isClipped,
+      'Severity Level': pred.severityLevel || '',
+      'Severity Prob Low': formatProb(pred.severityProbsLow),
+      'Severity Prob Medium': formatProb(pred.severityProbsMedium),
+      'Severity Prob High': formatProb(pred.severityProbsHigh),
+      'Severity Prob Critical': formatProb(pred.severityProbsCritical),
+      'Reliability': pred.reliability || '',
     }));
 
     const worksheet = XLSX.utils.json_to_sheet(data);
@@ -434,9 +486,10 @@ export class PredictionService {
         const records = parse(content, {
           columns: true,
           skip_empty_lines: true,
+          trim: true,
           cast: (value, context) => {
-            // Try to cast to number for cvss_base_score
-            if (context.column === 'cvss_base_score' && value) {
+            // Try to cast to number for cvss_base_score or cvss_base
+            if ((context.column === 'cvss_base_score' || context.column === 'cvss_base') && value) {
               const num = parseFloat(value);
               return isNaN(num) ? undefined : num;
             }
@@ -461,15 +514,35 @@ export class PredictionService {
 
       // Validate and normalize samples
       const validSamples: PredictionInput[] = [];
+      const sampleKeys: string[] = [];
+      
       for (const sample of samples) {
+        // Collect available keys from first sample for debugging
+        if (sampleKeys.length === 0 && Object.keys(sample).length > 0) {
+          sampleKeys.push(...Object.keys(sample));
+        }
+        
         // Try to find sample_id and text_description fields (case-insensitive)
-        const sampleId = sample.sample_id || sample.sampleId || sample['Sample ID'] || sample['sample ID'] || sample.id || sample.ID;
-        const textDescription = sample.text_description || sample.textDescription || sample['Text Description'] || sample['text description'] || sample.description || sample.Description;
+        // Support: sample_id, sampleId, id, ID, cve_id (for CVE datasets)
+        // Check all possible field name variations
+        const sampleId = sample.cve_id || sample['cve_id'] || sample.cveId || sample['CVE_ID'] || sample['CVE ID'] || 
+                        sample.sample_id || sample.sampleId || sample['Sample ID'] || sample['sample ID'] || 
+                        sample.id || sample.ID;
+        // Support: text_description, textDescription, description, Description, description_clean (for CVE datasets)
+        const textDescription = sample.description_clean || sample['description_clean'] || sample.descriptionClean || 
+                               sample['DESCRIPTION_CLEAN'] || sample['Description Clean'] || sample['description clean'] ||
+                               sample.text_description || sample.textDescription || sample['Text Description'] || 
+                               sample['text description'] || sample.description || sample.Description;
+        // Support: cvss_base_score, cvssBaseScore, cvss_base (for CVE datasets), cvss
         const cvssBaseScore = sample.cvss_base_score !== undefined ? sample.cvss_base_score : 
                              (sample.cvssBaseScore !== undefined ? sample.cvssBaseScore :
+                             (sample.cvss_base !== undefined ? sample.cvss_base :
+                             (sample.cvssBase !== undefined ? sample.cvssBase :
                              (sample['CVSS Base Score'] !== undefined ? sample['CVSS Base Score'] :
                              (sample['cvss base score'] !== undefined ? sample['cvss base score'] :
-                             (sample.cvss !== undefined ? sample.cvss : undefined))));
+                             (sample['CVSS Base'] !== undefined ? sample['CVSS Base'] :
+                             (sample['cvss base'] !== undefined ? sample['cvss base'] :
+                             (sample.cvss !== undefined ? sample.cvss : undefined))))))));
 
         if (sampleId && textDescription) {
           validSamples.push({
@@ -481,7 +554,8 @@ export class PredictionService {
       }
 
       if (validSamples.length === 0) {
-        throw new Error('No valid samples found. Each row must have sample_id (or id) and text_description (or description) fields.');
+        const availableFields = sampleKeys.length > 0 ? sampleKeys.join(', ') : 'none detected';
+        throw new Error(`No valid samples found. Each row must have a sample identifier field (sample_id, id, cve_id) and a description field (text_description, description, description_clean). Available fields in CSV: ${availableFields}`);
       }
 
       return validSamples;

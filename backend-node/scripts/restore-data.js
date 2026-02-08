@@ -72,13 +72,32 @@ async function createDefaultAdmin() {
  * 查找可用的模型文件
  */
 function findAvailableModels() {
-  const modelsDir = path.join(__dirname, '../../ml-service/models');
+  // 优先查找 Docker 容器中的 /app/models 目录
+  // 如果不存在，再查找本地的 ml-service/models 目录
+  const dockerModelsDir = '/app/models';
+  const localModelsDir = path.join(__dirname, '../../ml-service/models');
+  const rootModelsDir = path.join(__dirname, '../../models');
+  
+  let modelsDir = null;
+  if (fs.existsSync(dockerModelsDir)) {
+    modelsDir = dockerModelsDir;
+  } else if (fs.existsSync(rootModelsDir)) {
+    modelsDir = rootModelsDir;
+  } else if (fs.existsSync(localModelsDir)) {
+    modelsDir = localModelsDir;
+  }
+  
   const models = [];
   
-  if (!fs.existsSync(modelsDir)) {
-    console.log(`⚠️  模型目录不存在: ${modelsDir}`);
+  if (!modelsDir) {
+    console.log(`⚠️  模型目录不存在，已查找:`);
+    console.log(`   - ${dockerModelsDir}`);
+    console.log(`   - ${rootModelsDir}`);
+    console.log(`   - ${localModelsDir}`);
     return models;
   }
+  
+  console.log(`✓ 找到模型目录: ${modelsDir}`);
   
   const entries = fs.readdirSync(modelsDir, { withFileTypes: true });
   
