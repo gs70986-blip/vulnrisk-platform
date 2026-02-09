@@ -242,7 +242,8 @@ def assess_applicability(text, p_vuln, similarity_meta=None, tfidf_meta=None, cv
     
     Returns:
         dict: {
-            "applicable": bool,
+            "isVulnRelated": bool,  # 新字段（主字段）
+            "applicable": bool,  # 旧字段（兼容，值与 isVulnRelated 相同）
             "reason": "EMPTY_TEXT" | "LOW_SIMILARITY" | "LOW_SIGNAL" | "LOW_PVULN" | None,
             "thresholds": {
                 "clip_pvuln_threshold": float,
@@ -259,8 +260,12 @@ def assess_applicability(text, p_vuln, similarity_meta=None, tfidf_meta=None, cv
         }
     """
     if not clip_na_enabled:
+        is_vuln_related = True
         return {
-            "applicable": True,
+            # 新字段（主字段）
+            "isVulnRelated": is_vuln_related,
+            # 旧字段（兼容）
+            "applicable": is_vuln_related,
             "reason": None,
             "thresholds": {
                 "clip_pvuln_threshold": clip_pvuln_threshold,
@@ -300,8 +305,12 @@ def assess_applicability(text, p_vuln, similarity_meta=None, tfidf_meta=None, cv
     
     # 1) 空或过短
     if text_len < clip_min_text_len:
+        is_vuln_related = False
         return {
-            "applicable": False,
+            # 新字段（主字段）
+            "isVulnRelated": is_vuln_related,
+            # 旧字段（兼容）
+            "applicable": is_vuln_related,
             "reason": "EMPTY_TEXT",
             "thresholds": thresholds,
             "debug": debug
@@ -309,8 +318,12 @@ def assess_applicability(text, p_vuln, similarity_meta=None, tfidf_meta=None, cv
     
     # 2) 与漏洞语料相似度过低且用户未提供 cvss
     if max_similarity is not None and max_similarity < clip_sim_threshold and not has_user_cvss:
+        is_vuln_related = False
         return {
-            "applicable": False,
+            # 新字段（主字段）
+            "isVulnRelated": is_vuln_related,
+            # 旧字段（兼容）
+            "applicable": is_vuln_related,
             "reason": "LOW_SIMILARITY",
             "thresholds": thresholds,
             "debug": debug
@@ -318,8 +331,12 @@ def assess_applicability(text, p_vuln, similarity_meta=None, tfidf_meta=None, cv
     
     # 3) 文本信号太弱（TF-IDF 非零特征太少）且用户未提供 cvss
     if nonzero_features is not None and nonzero_features < clip_min_nonzero_tfidf and not has_user_cvss:
+        is_vuln_related = False
         return {
-            "applicable": False,
+            # 新字段（主字段）
+            "isVulnRelated": is_vuln_related,
+            # 旧字段（兼容）
+            "applicable": is_vuln_related,
             "reason": "LOW_SIGNAL",
             "thresholds": thresholds,
             "debug": debug
@@ -329,16 +346,24 @@ def assess_applicability(text, p_vuln, similarity_meta=None, tfidf_meta=None, cv
     if (p_vuln < clip_pvuln_threshold and 
         not has_user_cvss and 
         (max_similarity is None or max_similarity < clip_sim_threshold)):
+        is_vuln_related = False
         return {
-            "applicable": False,
+            # 新字段（主字段）
+            "isVulnRelated": is_vuln_related,
+            # 旧字段（兼容）
+            "applicable": is_vuln_related,
             "reason": "LOW_PVULN",
             "thresholds": thresholds,
             "debug": debug
         }
     
     # 所有条件都不满足，适用
+    is_vuln_related = True
     return {
-        "applicable": True,
+        # 新字段（主字段）
+        "isVulnRelated": is_vuln_related,
+        # 旧字段（兼容）
+        "applicable": is_vuln_related,
         "reason": None,
         "thresholds": thresholds,
         "debug": debug

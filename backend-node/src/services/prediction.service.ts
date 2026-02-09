@@ -47,9 +47,12 @@ export class PredictionService {
     
     const mlRequest = {
       // 不再传递 model_path，改为传递两阶段模型路径
-      app_model_path: appModelPath,
+      // 使用新字段名（主字段），同时保留旧字段名（兼容）
+      relevance_model_path: appModelPath,
+      app_model_path: appModelPath,  // 旧字段（兼容）
       sev_model_path: sevModelPath,
-      app_threshold: 0.5,  // 默认阈值
+      relevance_threshold: 0.5,  // 新字段名（主字段）
+      app_threshold: 0.5,  // 旧字段（兼容）
       sample: {
         sample_id: input.sample_id,
         text_description: input.text_description,
@@ -65,40 +68,60 @@ export class PredictionService {
         p_vuln_raw,  // 原始预测值
         risk_score, 
         risk_level, 
+        riskLevel,  // ML 服务返回的 riskLevel（从 risk_score 映射得到）
         cvss_base_score, 
         explanation, 
         meta,
         is_clipped,  // 是否被裁剪
         reliability,  // 可靠性
         warnings,  // 警告信息
-        // 两阶段模型新字段
-        pApplicable,
-        applicable,
-        severityLevel,
+        // 两阶段模型新字段（优先读取新字段，兼容旧字段）
+        pVulnRelated,
+        isVulnRelated,
+        pApplicable,  // 旧字段（兼容）
+        applicable,  // 旧字段（兼容）
+        severityLevel,  // Stage B 模型预测的严重度等级（可能与 riskLevel 不同）
         severityProbs,
         riskScore: two_stage_risk_score,
       } = response.data;
+
+      // 优先使用新字段，fallback 到旧字段
+      const finalPVulnRelated = pVulnRelated ?? pApplicable ?? null;
+      const finalIsVulnRelated = isVulnRelated ?? applicable ?? true;
 
       // 使用 ML 服务返回的 CVSS（如果输入为空，ML 服务会返回估算值）
       const finalCvss = cvss_base_score ?? input.cvss_base_score;
       
       // 优先使用两阶段模型的字段，否则使用旧字段
       const finalRiskScore = two_stage_risk_score ?? risk_score ?? 0;
-      const finalRiskLevel = severityLevel ?? (risk_level === 'N/A' ? 'Unknown' : risk_level);
-      const finalPVuln = p_vuln ?? (severityProbs ? 
-        (severityProbs.High || 0) + (severityProbs.Critical || 0) : 
-        p_vuln);
+      // riskLevel 是从 risk_score 映射得到的，应该优先使用；severityLevel 是 Stage B 模型预测的严重度等级
+      const finalRiskLevel = riskLevel ?? (risk_level === 'N/A' ? 'Unknown' : risk_level);
+      
+      // 计算 pVuln：优先使用 p_vuln，否则从 severityProbs 计算（High + Critical 的概率），最后使用 pVulnRelated，如果都没有则使用 0
+      let finalPVuln: number;
+      if (p_vuln !== null && p_vuln !== undefined) {
+        finalPVuln = p_vuln;
+      } else if (severityProbs) {
+        finalPVuln = (severityProbs.High || 0) + (severityProbs.Critical || 0);
+      } else if (finalPVulnRelated !== null && finalPVulnRelated !== undefined) {
+        finalPVuln = finalPVulnRelated;
+      } else {
+        finalPVuln = 0;  // 默认值，确保字段不为 undefined
+      }
 
-      // 构建扩展的metadata，包含新字段
+      // 构建扩展的metadata，包含新字段和旧字段（兼容）
       const extendedMeta = {
         ...(meta || {}),
         p_vuln_raw: p_vuln_raw,  // 原始预测值
         is_clipped: is_clipped || false,  // 是否被裁剪
         reliability: reliability || 'Medium',  // 可靠性
         warnings: warnings || [],  // 警告信息
-        // 两阶段模型字段
-        pApplicable: pApplicable ?? null,
-        applicable: applicable ?? true,
+        // 两阶段模型新字段（主字段）
+        pVulnRelated: finalPVulnRelated,
+        isVulnRelated: finalIsVulnRelated,
+        // 两阶段模型旧字段（兼容，值与新字段相同）
+        pApplicable: finalPVulnRelated,
+        applicable: finalIsVulnRelated,
         severityLevel: severityLevel ?? null,
         severityProbs: severityProbs ?? null,
       };
@@ -109,10 +132,10 @@ export class PredictionService {
           modelId: model.id,
           sampleId: input.sample_id,
           textDescription: input.text_description,
-          pVuln: finalPVuln,
-          cvss: finalCvss,  // 使用 ML 服务返回的 CVSS（包含估算值）
+          pVuln: finalPVuln,  // 确保始终有值（不能为 undefined）
+          cvss: finalCvss ?? undefined,  // 使用 ML 服务返回的 CVSS（包含估算值），undefined 表示可选字段
           riskScore: finalRiskScore,  // 如果为null，使用0（向后兼容）
-          riskLevel: finalRiskLevel,  // 将N/A映射为Unknown
+          riskLevel: finalRiskLevel || 'Unknown',  // 确保始终有值，将N/A映射为Unknown
           explanation: explanation || null,  // 保存 explanation 到数据库
           metadata: extendedMeta,  // 保存扩展的meta到数据库（JSON 字段）
         },
@@ -125,9 +148,12 @@ export class PredictionService {
         isClipped: is_clipped || false,
         reliability: reliability || response.data.reliability || 'Medium',
         warnings: warnings || [],
-        // 两阶段模型字段
-        pApplicable: pApplicable ?? null,
-        applicable: applicable ?? true,
+        // 两阶段模型新字段（主字段）
+        pVulnRelated: finalPVulnRelated,
+        isVulnRelated: finalIsVulnRelated,
+        // 两阶段模型旧字段（兼容，值与新字段相同）
+        pApplicable: finalPVulnRelated,
+        applicable: finalIsVulnRelated,
         severityLevel: severityLevel ?? null,
         severityProbs: severityProbs ?? null,
         // 系统级处理字段
@@ -174,9 +200,12 @@ export class PredictionService {
     
     const mlRequest = {
       // 不再传递 model_path，改为传递两阶段模型路径
-      app_model_path: appModelPath,
+      // 使用新字段名（主字段），同时保留旧字段名（兼容）
+      relevance_model_path: appModelPath,
+      app_model_path: appModelPath,  // 旧字段（兼容）
       sev_model_path: sevModelPath,
-      app_threshold: 0.5,  // 默认阈值
+      relevance_threshold: 0.5,  // 新字段名（主字段）
+      app_threshold: 0.5,  // 旧字段（兼容）
       samples: input.samples,
     };
 
@@ -190,28 +219,36 @@ export class PredictionService {
       // Save all predictions to database
       const savedPredictions = await Promise.all(
         predictions.map((pred: any) => {
+          // 优先读取新字段，fallback 到旧字段
+          const finalPVulnRelated = pred.pVulnRelated ?? pred.pApplicable ?? null;
+          const finalIsVulnRelated = pred.isVulnRelated ?? pred.applicable ?? true;
+
           // 构建扩展的metadata
           const extendedMeta = {
             ...(pred.meta || {}),
-            p_vuln_raw: pred.p_vuln_raw ?? pred.pApplicable ?? null,
+            p_vuln_raw: pred.p_vuln_raw ?? finalPVulnRelated ?? null,
             is_clipped: pred.is_clipped || false,
             reliability: pred.reliability || 'Medium',
             warnings: pred.warnings || [],
-            // 两阶段模型字段
-            pApplicable: pred.pApplicable ?? null,
-            applicable: pred.applicable ?? true,
+            // 两阶段模型新字段（主字段）
+            pVulnRelated: finalPVulnRelated,
+            isVulnRelated: finalIsVulnRelated,
+            // 两阶段模型旧字段（兼容，值与新字段相同）
+            pApplicable: finalPVulnRelated,
+            applicable: finalIsVulnRelated,
             severityLevel: pred.severityLevel ?? null,
             severityProbs: pred.severityProbs ?? null,
           };
 
-          // 计算 pVuln：优先使用 pVuln，否则从 severityProbs 计算（High + Critical 的概率），最后使用 pApplicable
+          // 计算 pVuln：优先使用 pVuln，否则从 severityProbs 计算（High + Critical 的概率），最后使用 pVulnRelated
           const finalPVuln = pred.pVuln ?? pred.p_vuln ?? (pred.severityProbs ? 
             ((pred.severityProbs.High || 0) + (pred.severityProbs.Critical || 0)) : 
-            (pred.pApplicable ?? 0.5));
+            (finalPVulnRelated ?? 0.5));
 
           // 获取 riskScore 和 riskLevel：优先使用两阶段模型的字段
           const finalRiskScore = pred.riskScore ?? pred.risk_score ?? 0;
-          const finalRiskLevel = pred.riskLevel ?? pred.severityLevel ?? 
+          // riskLevel 是从 risk_score 映射得到的，应该优先使用；severityLevel 是 Stage B 模型预测的严重度等级
+          const finalRiskLevel = pred.riskLevel ?? 
             (pred.risk_level === 'N/A' || pred.risk_level === 'Unknown' ? 'Unknown' : pred.risk_level) ?? 
             'Unknown';
 
@@ -262,18 +299,24 @@ export class PredictionService {
       prisma.prediction.count(),
     ]);
 
-    // 将 metadata 映射为 meta，并提取新字段
+    // 将 metadata 映射为 meta，并提取新字段（优先新字段，兼容旧字段）
     const dataWithMeta = data.map((pred: any) => {
       const meta = pred.metadata as any || {};
+      // 优先读取新字段，fallback 到旧字段
+      const pVulnRelated = meta.pVulnRelated ?? meta.pApplicable ?? null;
+      const isVulnRelated = meta.isVulnRelated ?? meta.applicable ?? true;
       return {
         ...pred,
         pVulnRaw: meta.p_vuln_raw ?? pred.pVuln,  // 如果没有原始值，使用pVuln
         isClipped: meta.is_clipped || false,
         reliability: meta.reliability || 'Medium',
         warnings: meta.warnings || [],
-        // 两阶段模型字段
-        pApplicable: meta.pApplicable ?? null,
-        applicable: meta.applicable ?? true,
+        // 两阶段模型新字段（主字段）
+        pVulnRelated: pVulnRelated,
+        isVulnRelated: isVulnRelated,
+        // 两阶段模型旧字段（兼容，值与新字段相同）
+        pApplicable: pVulnRelated,
+        applicable: isVulnRelated,
         severityLevel: meta.severityLevel ?? pred.riskLevel,
         severityProbs: meta.severityProbs ?? null,
         meta: meta,  // 将 metadata 映射为 meta
@@ -298,17 +341,23 @@ export class PredictionService {
       return null;
     }
 
-    // 从metadata中提取新字段，添加到响应中
+    // 从metadata中提取新字段，添加到响应中（优先新字段，兼容旧字段）
     const meta = prediction.metadata as any || {};
+    // 优先读取新字段，fallback 到旧字段
+    const pVulnRelated = meta.pVulnRelated ?? meta.pApplicable ?? null;
+    const isVulnRelated = meta.isVulnRelated ?? meta.applicable ?? true;
     return {
       ...prediction,
       pVulnRaw: meta.p_vuln_raw ?? prediction.pVuln,  // 如果没有原始值，使用pVuln
       isClipped: meta.is_clipped || false,
       reliability: meta.reliability || 'Medium',
       warnings: meta.warnings || [],
-      // 两阶段模型字段
-      pApplicable: meta.pApplicable ?? null,
-      applicable: meta.applicable ?? true,
+      // 两阶段模型新字段（主字段）
+      pVulnRelated: pVulnRelated,
+      isVulnRelated: isVulnRelated,
+      // 两阶段模型旧字段（兼容，值与新字段相同）
+      pApplicable: pVulnRelated,
+      applicable: isVulnRelated,
       severityLevel: meta.severityLevel ?? prediction.riskLevel,
       severityProbs: meta.severityProbs ?? null,
       meta: meta,  // 同时提供meta字段（向后兼容）
@@ -342,6 +391,9 @@ export class PredictionService {
     return predictions.map((pred) => {
       const meta = pred.metadata as any || {};
       const severityProbs = meta.severityProbs || {};
+      // 优先读取新字段，fallback 到旧字段
+      const pVulnRelated = meta.pVulnRelated ?? meta.pApplicable ?? null;
+      const isVulnRelated = meta.isVulnRelated ?? meta.applicable ?? true;
       
       return {
         id: pred.id,
@@ -353,9 +405,12 @@ export class PredictionService {
         riskLevel: pred.riskLevel,
         modelType: pred.model?.type || 'Unknown',
         createdAt: pred.createdAt.toISOString(),
-        // 新增字段
-        applicable: meta.applicable ?? true,
-        pApplicable: meta.pApplicable ?? null,
+        // 新字段（主字段）
+        isVulnRelated: isVulnRelated,
+        pVulnRelated: pVulnRelated,
+        // 旧字段（兼容，值与新字段相同）
+        applicable: isVulnRelated,
+        pApplicable: pVulnRelated,
         isClipped: meta.is_clipped || false,
         severityLevel: meta.severityLevel ?? null,
         severityProbsLow: severityProbs['Low'] ?? severityProbs['low'] ?? null,
@@ -369,12 +424,12 @@ export class PredictionService {
 
   async exportToCSV(predictions: any[]): Promise<string> {
     if (predictions.length === 0) {
-      return 'ID,Sample ID,Text Description,P(vuln),CVSS,Risk Score,Risk Level,Model Type,Created At,Applicable,pApplicable,Is Clipped,Severity Level,Severity Prob Low,Severity Prob Medium,Severity Prob High,Severity Prob Critical,Reliability\n';
+      return 'ID,Sample ID,Text Description,P(vuln),CVSS,Risk Score,Risk Level,Model Type,Created At,isVulnRelated,pVulnRelated,Is Clipped,Severity Level,Severity Prob Low,Severity Prob Medium,Severity Prob High,Severity Prob Critical,Reliability\n';
     }
 
     const headers = [
       'ID', 'Sample ID', 'Text Description', 'P(vuln)', 'CVSS', 'Risk Score', 'Risk Level', 
-      'Model Type', 'Created At', 'Applicable', 'pApplicable', 'Is Clipped', 'Severity Level',
+      'Model Type', 'Created At', 'isVulnRelated', 'pVulnRelated', 'Is Clipped', 'Severity Level',
       'Severity Prob Low', 'Severity Prob Medium', 'Severity Prob High', 'Severity Prob Critical', 'Reliability'
     ];
     
@@ -404,9 +459,9 @@ export class PredictionService {
         escapeCSV(pred.riskLevel),
         escapeCSV(pred.modelType),
         escapeCSV(pred.createdAt),
-        // 新增列
-        escapeCSV(pred.applicable),
-        escapeCSV(pred.pApplicable?.toFixed(4) || ''),
+        // 新列（主字段）
+        escapeCSV(pred.isVulnRelated),
+        escapeCSV(pred.pVulnRelated?.toFixed(4) || ''),
         escapeCSV(pred.isClipped),
         escapeCSV(pred.severityLevel),
         escapeCSV(formatProb(pred.severityProbsLow)),
@@ -439,9 +494,9 @@ export class PredictionService {
       'Risk Level': pred.riskLevel,
       'Model Type': pred.modelType,
       'Created At': pred.createdAt,
-      // 新增列
-      'Applicable': pred.applicable,
-      'pApplicable': pred.pApplicable?.toFixed(4) || '',
+      // 新列（主字段）
+      'isVulnRelated': pred.isVulnRelated,
+      'pVulnRelated': pred.pVulnRelated?.toFixed(4) || '',
       'Is Clipped': pred.isClipped,
       'Severity Level': pred.severityLevel || '',
       'Severity Prob Low': formatProb(pred.severityProbsLow),

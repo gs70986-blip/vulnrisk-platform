@@ -666,8 +666,8 @@ def train_applicability_model(
     metadata = {
         'model_type': model_type.upper(),  # 用于数据库注册的类型（算法名称：XGB/RF/LR）
         'model_algorithm': model_type.upper(),  # 实际算法类型（LR/XGB/RF）
-        'model_function': 'applicability',  # 模型功能类型（applicability/severity）
-        'task': 'applicability_classification',
+        'model_function': 'vuln_relevance',  # 模型功能类型（vuln_relevance/severity），旧字段 'applicability' 已重命名为 'vuln_relevance'
+        'task': 'vuln_relevance_classification',  # 旧字段 'applicability_classification' 已重命名
         'params': {
             'max_features': MAX_FEATURES,
             'ngram_range': list(NGRAM_RANGE),
@@ -734,7 +734,8 @@ def train_applicability_model(
     eval_predictions = pd.DataFrame({
         'text': df_all.iloc[test_indices]['text'].values,
         'label': y_test,
-        'p_applicable': y_test_pred_proba,
+        'p_vuln_related': y_test_pred_proba,  # 新字段名
+        'p_applicable': y_test_pred_proba,  # 旧字段名（兼容）
         'predicted': y_pred,
     })
     

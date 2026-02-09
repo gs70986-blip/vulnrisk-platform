@@ -48,10 +48,10 @@
             </div>
           </template>
         </el-table-column>
-        <el-table-column label="P(Applicable)" width="160" align="center">
+        <el-table-column label="P(Vuln-Related)" width="160" align="center">
           <template #default="scope">
             <el-tooltip 
-              content="Whether the input text entered the risk assessment stage (Stage A decision)."
+              content="Whether the input text is vulnerability-related (Stage A decision)."
               placement="top"
             >
               <div class="progress-cell">
@@ -657,12 +657,17 @@ const handleExport = async (format: 'csv' | 'excel' | 'json') => {
   }
 }
 
-// 获取P(Applicable)值
+// 获取P(Vuln-Related)值（优先新字段，兼容旧字段）
 const getPApplicable = (prediction: any): number => {
+  // 优先使用新字段
+  if (prediction.pVulnRelated !== null && prediction.pVulnRelated !== undefined) {
+    return prediction.pVulnRelated
+  }
+  // fallback 到旧字段
   if (prediction.pApplicable !== null && prediction.pApplicable !== undefined) {
     return prediction.pApplicable
   }
-  // 兼容旧字段
+  // 兼容更旧的字段
   if (prediction.pVuln !== null && prediction.pVuln !== undefined) {
     return prediction.pVuln
   }
@@ -695,9 +700,11 @@ const formatRiskScore = (value: number | null): string => {
   return value.toFixed(3)
 }
 
-// 判断是否应该显示严重度信息
+// 判断是否应该显示严重度信息（优先新字段，兼容旧字段）
 const shouldShowSeverityInfo = (prediction: any): boolean => {
-  const applicable = prediction.applicable !== false
+  // 优先使用新字段，fallback 到旧字段
+  const isVulnRelated = prediction.isVulnRelated ?? prediction.applicable ?? true
+  const applicable = isVulnRelated !== false
   const riskLevel = getDisplayRiskLevel(prediction)
   return applicable && riskLevel !== 'N/A' && riskLevel !== 'Unknown'
 }

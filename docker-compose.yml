@@ -41,6 +41,10 @@ services:
       - ./models:/models:ro
       - ./backend-node/uploads:/app/uploads
       - ./backend-node/scripts:/app/scripts:ro
+      # 挂载 CSV 数据集文件
+      - ./ml-service/merged_json_table.csv:/app/merged_json_table.csv:ro
+      - ./ml-service/negative_github_issues.csv:/app/negative_github_issues.csv:ro
+      - ./ml-service/data_aug:/app/data_aug:ro
     command: sh -c "npx prisma migrate deploy && node scripts/create-admin.js admin admin123 admin@example.com || true && npm start"
 
   ml-service:

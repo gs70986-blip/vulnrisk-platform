@@ -417,33 +417,47 @@ def downgrade_reliability(current_reliability, reason='UNCERTAINTY'):
 
 
 def predict_two_stage(text_description, app_model_path=None, sev_model_path=None, 
-                       app_threshold=0.5, use_legacy=False, legacy_model_path=None):
+                       app_threshold=0.5, use_legacy=False, legacy_model_path=None,
+                       relevance_model_path=None, relevance_threshold=None):
     """
     两阶段预测函数
     
-    Stage A: Applicability 模型判断是否漏洞相关
+    Stage A: 漏洞相关性模型判断是否漏洞相关
     Stage B: Severity 模型预测严重度（4类）
     
     Args:
         text_description: 输入文本
-        app_model_path: Applicability模型路径（默认: /app/models/app_model_001）
+        app_model_path: Applicability模型路径（默认: /app/models/app_model_001，兼容旧参数名）
+        relevance_model_path: 漏洞相关性模型路径（新参数名，优先使用）
         sev_model_path: Severity模型路径（默认: /app/models/sev_model_001）
-        app_threshold: Applicability阈值（默认: 0.5）
+        app_threshold: Applicability阈值（默认: 0.5，兼容旧参数名）
+        relevance_threshold: 漏洞相关性阈值（新参数名，优先使用）
         use_legacy: 是否使用旧模型（向后兼容）
         legacy_model_path: 旧模型路径
     
     Returns:
         预测结果字典
     """
+    # 优先使用新参数名，fallback 到旧参数名（兼容）
+    if relevance_model_path is not None:
+        app_model_path = relevance_model_path
+    if relevance_threshold is not None:
+        app_threshold = relevance_threshold
     # 预处理文本
     processed_text = preprocess_text_for_prediction(text_description)
     
     # ========== 输入质量检查（precheck）==========
     is_low_quality, quality_reason, quality_note = check_input_quality(text_description, processed_text)
     if is_low_quality:
+        p_vuln_related = 0.0
+        is_vuln_related = False
         return {
-            'applicable': False,
-            'pApplicable': 0.0,
+            # 新字段（主字段）
+            'isVulnRelated': is_vuln_related,
+            'pVulnRelated': p_vuln_related,
+            # 旧字段（兼容）
+            'applicable': is_vuln_related,
+            'pApplicable': p_vuln_related,
             'severityLevel': None,
             'severityProbs': None,
             'riskScore': 0,
@@ -502,9 +516,15 @@ def predict_two_stage(text_description, app_model_path=None, sev_model_path=None
     
     # Stage A decision: if not applicable, return early without Stage B
     if not applicable:
+        p_vuln_related = float(p_applicable)
+        is_vuln_related = False
         return {
-            'applicable': False,
-            'pApplicable': float(p_applicable),
+            # 新字段（主字段）
+            'isVulnRelated': is_vuln_related,
+            'pVulnRelated': p_vuln_related,
+            # 旧字段（兼容）
+            'applicable': is_vuln_related,
+            'pApplicable': p_vuln_related,
             'severityLevel': None,
             'severityProbs': None,
             'riskScore': 0,
@@ -527,9 +547,15 @@ def predict_two_stage(text_description, app_model_path=None, sev_model_path=None
     
     # 如果检测到安全关键词但上下文线索和技术证据不足，保守跳过
     if security_keyword_count > 0 and total_evidence < min_context_threshold:
+        p_vuln_related = float(p_applicable)
+        is_vuln_related = False
         return {
-            'applicable': False,
-            'pApplicable': float(p_applicable),
+            # 新字段（主字段）
+            'isVulnRelated': is_vuln_related,
+            'pVulnRelated': p_vuln_related,
+            # 旧字段（兼容）
+            'applicable': is_vuln_related,
+            'pApplicable': p_vuln_related,
             'severityLevel': None,
             'severityProbs': None,
             'riskScore': 0,
@@ -556,9 +582,15 @@ def predict_two_stage(text_description, app_model_path=None, sev_model_path=None
             return predict_legacy(text_description, legacy_model_path)
         else:
             # 默认返回Medium（Severity模型不可用时的后备）
+            p_vuln_related = float(p_applicable)
+            is_vuln_related = True
             return {
-                'applicable': True,
-                'pApplicable': float(p_applicable),
+                # 新字段（主字段）
+                'isVulnRelated': is_vuln_related,
+                'pVulnRelated': p_vuln_related,
+                # 旧字段（兼容）
+                'applicable': is_vuln_related,
+                'pApplicable': p_vuln_related,
                 'severityLevel': 'Medium',
                 'severityProbs': {
                     'Low': 0.25,
@@ -649,14 +681,24 @@ def predict_two_stage(text_description, app_model_path=None, sev_model_path=None
         parts = model_path.split('/')
         return parts[-1] if parts else 'default'
     
+    p_vuln_related = float(p_applicable)
+    is_vuln_related = True
+    
+    # 从 risk_score 映射得到 riskLevel（与 severityLevel 可能不同）
+    risk_level = get_risk_level(risk_score)
+    
     return {
-        'applicable': True,
-        'pApplicable': float(p_applicable),
-        'severityLevel': severity_level,
+        # 新字段（主字段）
+        'isVulnRelated': is_vuln_related,
+        'pVulnRelated': p_vuln_related,
+        # 旧字段（兼容）
+        'applicable': is_vuln_related,
+        'pApplicable': p_vuln_related,
+        'severityLevel': severity_level,  # Stage B 模型预测的严重度等级
         'severityProbs': severity_probs,
         'riskScore': float(risk_score),
         'pVuln': p_vuln,  # 兼容字段
-        'riskLevel': severity_level,  # 兼容字段
+        'riskLevel': risk_level,  # 从 risk_score 映射得到的风险等级
         'explanation': explanation,
         'reason': 'APPLICABLE',
         'text_len': len(processed_text),
@@ -666,7 +708,8 @@ def predict_two_stage(text_description, app_model_path=None, sev_model_path=None
         'notes': notes if notes else None,
         'inputType': input_type,
         'modelInfo': {
-            'applicabilityModel': extract_model_name(app_model_path),
+            'relevanceModel': extract_model_name(app_model_path),  # 新字段名（主字段）
+            'applicabilityModel': extract_model_name(app_model_path),  # 旧字段（兼容）
             'severityModel': extract_model_name(sev_model_path),
         },
     }
@@ -678,14 +721,16 @@ def predict_legacy(text_description, model_path):
     """
     # 这里可以调用原来的predict函数逻辑
     # 为了简化，我们直接返回一个基本结果
+    legacy_risk_score = 0.5
+    legacy_risk_level = get_risk_level(legacy_risk_score)  # 从 risk_score 映射
     return {
         'applicable': True,
         'pApplicable': 0.8,
         'severityLevel': 'Medium',
         'severityProbs': None,
-        'riskScore': 0.5,
+        'riskScore': legacy_risk_score,
         'pVuln': 0.5,
-        'riskLevel': 'Medium',
+        'riskLevel': legacy_risk_level,  # 从 risk_score 映射得到的风险等级
         'explanation': 'Using legacy model (two-stage models not available).',
         'reason': 'LEGACY_MODEL',
     }
@@ -699,9 +744,11 @@ def predict():
     请求体:
     {
         "model_path": "/app/models/risk_model_001",  # 旧模型路径（向后兼容）
-        "app_model_path": "/app/models/app_model_001",  # Applicability模型路径（可选）
+        "relevance_model_path": "/app/models/app_model_001",  # 漏洞相关性模型路径（新字段名，优先使用）
+        "app_model_path": "/app/models/app_model_001",  # Applicability模型路径（旧字段名，兼容）
         "sev_model_path": "/app/models/sev_model_001",  # Severity模型路径（可选）
-        "app_threshold": 0.5,  # Applicability阈值（可选）
+        "relevance_threshold": 0.5,  # 漏洞相关性阈值（新字段名，优先使用）
+        "app_threshold": 0.5,  # Applicability阈值（旧字段名，兼容）
         "sample": {
             "sample_id": "sample_1",
             "text_description": "漏洞描述文本",
@@ -719,11 +766,11 @@ def predict():
         if not text_description:
             return jsonify({'error': 'text_description is required'}), 400
         
-        # 获取模型路径
-        app_model_path = data.get('app_model_path')
+        # 获取模型路径（优先新字段名，兼容旧字段名）
+        app_model_path = data.get('relevance_model_path') or data.get('app_model_path')
         sev_model_path = data.get('sev_model_path')
         legacy_model_path = data.get('model_path')  # 旧字段，向后兼容
-        app_threshold = data.get('app_threshold', 0.5)
+        app_threshold = data.get('relevance_threshold') or data.get('app_threshold', 0.5)
         legacy_mode = data.get('legacy_mode', False)  # 明确指定才走 legacy
         
         # 强制使用两阶段模型（除非明确指定 legacy_mode）
@@ -847,9 +894,11 @@ def predict_batch():
     
     请求体:
     {
-        "app_model_path": "/app/models/app_model_002_aug_xgb",  # 可选
+        "relevance_model_path": "/app/models/app_model_002_aug_xgb",  # 漏洞相关性模型路径（新字段名，优先使用）
+        "app_model_path": "/app/models/app_model_002_aug_xgb",  # 旧字段名（兼容）
         "sev_model_path": "/app/models/sev_model_001",  # 可选
-        "app_threshold": 0.5,  # 可选
+        "relevance_threshold": 0.5,  # 漏洞相关性阈值（新字段名，优先使用）
+        "app_threshold": 0.5,  # 旧字段名（兼容）
         "samples": [
             {
                 "sample_id": "sample_1",
@@ -869,9 +918,10 @@ def predict_batch():
             return jsonify({'error': 'Request body is required'}), 400
         
         samples = data.get('samples', [])
-        app_model_path = data.get('app_model_path')
+        # 优先新字段名，兼容旧字段名
+        app_model_path = data.get('relevance_model_path') or data.get('app_model_path')
         sev_model_path = data.get('sev_model_path')
-        app_threshold = data.get('app_threshold', 0.5)
+        app_threshold = data.get('relevance_threshold') or data.get('app_threshold', 0.5)
         
         if not samples or not isinstance(samples, list):
             return jsonify({'error': 'samples must be a non-empty list'}), 400

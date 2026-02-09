@@ -60,7 +60,12 @@ export interface MLModel {
 export interface Prediction {
   explanation?: string | null
   meta?: {
+    // 新字段（主字段）
+    isVulnRelated?: boolean
+    pVulnRelated?: number | null
+    // 旧字段（兼容，值与新字段相同）
     applicable?: boolean
+    pApplicable?: number | null
     reason?: string | null
     max_similarity?: number | null
     nonzero_features?: number | null
@@ -84,7 +89,10 @@ export interface Prediction {
   cvss?: number | null
   riskScore?: number | null
   riskLevel?: string | null
-  // 新字段（两阶段模型）
+  // 新字段（两阶段模型）- 主字段
+  pVulnRelated?: number | null
+  isVulnRelated?: boolean | null
+  // 旧字段（兼容，值与新字段相同）
   pApplicable?: number | null
   applicable?: boolean | null
   severityLevel?: string | null
@@ -99,7 +107,8 @@ export interface Prediction {
   notes?: string[] | null
   inputType?: 'normal' | 'patch_mitigation' | 'low_quality'
   modelInfo?: {
-    applicabilityModel?: string
+    relevanceModel?: string  // 新字段名（主字段）
+    applicabilityModel?: string  // 旧字段名（兼容）
     severityModel?: string
   }
   createdAt: string

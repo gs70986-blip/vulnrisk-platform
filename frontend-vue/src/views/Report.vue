@@ -34,17 +34,17 @@
               {{ prediction.sampleId }}
             </el-descriptions-item>
             
-            <!-- Applicability -->
-            <el-descriptions-item label="Applicability">
+            <!-- Vuln-Related (漏洞相关性) -->
+            <el-descriptions-item label="Vuln-Related">
               <div style="display: flex; align-items: center; gap: 8px">
-                <el-tag :type="prediction.applicable ? 'success' : 'info'" size="large">
-                  {{ prediction.applicable ? 'Applicable' : 'Not Applicable' }}
+                <el-tag :type="getIsVulnRelated(prediction) ? 'success' : 'info'" size="large">
+                  {{ getIsVulnRelated(prediction) ? 'Vuln-Related' : 'Not Vuln-Related' }}
                 </el-tag>
-                <span v-if="prediction.pApplicable !== null && prediction.pApplicable !== undefined">
-                  ({{ formatPercent(prediction.pApplicable) }})
+                <span v-if="getPVulnRelated(prediction) !== null && getPVulnRelated(prediction) !== undefined">
+                  ({{ formatPercent(getPVulnRelated(prediction)) }})
                 </span>
                 <el-tooltip 
-                  content="Probability that the input text is vulnerability-related / information-sufficient."
+                  content="Probability that the input text is vulnerability-related (Stage A decision)."
                   placement="top"
                 >
                   <el-icon style="cursor: help; color: #909399;"><QuestionFilled /></el-icon>
@@ -90,7 +90,7 @@
               <div v-if="prediction.severityProbs && prediction.modelInfo">
                 <div>Severity Model: {{ getModelName(prediction.modelInfo.severityModel) }}</div>
                 <div style="font-size: 12px; color: #909399; margin-top: 4px">
-                  Applicability Model: {{ getModelName(prediction.modelInfo.applicabilityModel) }}
+                  Relevance Model: {{ getModelName(prediction.modelInfo.relevanceModel || prediction.modelInfo.applicabilityModel) }}
                 </div>
               </div>
               <span v-else>{{ prediction.model?.type || 'N/A' }}</span>
@@ -240,7 +240,7 @@
           <div style="line-height: 1.8">
             <el-text>
               <strong>Two-Stage Assessment Methodology:</strong><br />
-              <strong>Stage A</strong> determines applicability (whether the input text is vulnerability-related and enters risk assessment).<br />
+              <strong>Stage A</strong> determines vulnerability relevance (whether the input text is vulnerability-related and enters risk assessment).<br />
               <strong>Stage B</strong> predicts severity distribution (Low/Medium/High/Critical) for applicable inputs, conditional on Stage A passing.<br /><br />
               
               <strong>Risk Assessment Semantics:</strong><br />
@@ -419,10 +419,21 @@ const formatDate = (dateStr: string) => {
   return new Date(dateStr).toLocaleString()
 }
 
-// 判断是否应该显示严重度信息
+// 获取是否漏洞相关（优先新字段，兼容旧字段）
+const getIsVulnRelated = (pred: any): boolean => {
+  return pred.isVulnRelated ?? pred.applicable ?? true
+}
+
+// 获取漏洞相关性概率（优先新字段，兼容旧字段）
+const getPVulnRelated = (pred: any): number | null => {
+  return pred.pVulnRelated ?? pred.pApplicable ?? null
+}
+
+// 判断是否应该显示严重度信息（优先新字段，兼容旧字段）
 const shouldShowSeverityInfo = computed(() => {
   if (!prediction.value) return false
-  const applicable = prediction.value.applicable !== false
+  const isVulnRelated = getIsVulnRelated(prediction.value)
+  const applicable = isVulnRelated !== false
   const riskLevel = displayRiskLevel.value
   return applicable && riskLevel !== 'N/A' && riskLevel !== 'Unknown'
 })

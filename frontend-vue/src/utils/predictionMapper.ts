@@ -11,7 +11,10 @@ export interface PredictionData {
   cvss?: number | null;
   reliability?: string | null;
   
-  // 新字段（两阶段模型）
+  // 新字段（两阶段模型）- 主字段
+  pVulnRelated?: number | null;
+  isVulnRelated?: boolean | null;
+  // 旧字段（兼容，值与新字段相同）
   pApplicable?: number | null;
   applicable?: boolean | null;
   severityLevel?: string | null;
@@ -28,9 +31,10 @@ export interface PredictionData {
 
 /**
  * 获取显示的风险等级
+ * 优先使用 riskLevel（从 risk_score 映射得到的），而不是 severityLevel（Stage B 模型预测的严重度等级）
  */
 export function getDisplayRiskLevel(prediction: PredictionData): string {
-  return prediction.severityLevel ?? prediction.riskLevel ?? 'N/A';
+  return prediction.riskLevel ?? prediction.severityLevel ?? 'N/A';
 }
 
 /**
@@ -41,10 +45,10 @@ export function getDisplayRiskScore(prediction: PredictionData): number {
 }
 
 /**
- * 获取显示的适用性概率
+ * 获取显示的适用性概率（优先新字段，兼容旧字段）
  */
 export function getDisplayApplicableProb(prediction: PredictionData): number | null {
-  return prediction.pApplicable ?? null;
+  return prediction.pVulnRelated ?? prediction.pApplicable ?? null;
 }
 
 /**
@@ -62,10 +66,10 @@ export function getDisplayHighRiskProb(prediction: PredictionData): number | nul
 }
 
 /**
- * 获取是否适用
+ * 获取是否适用（优先新字段，兼容旧字段）
  */
 export function getDisplayApplicable(prediction: PredictionData): boolean {
-  return prediction.applicable ?? true;
+  return prediction.isVulnRelated ?? prediction.applicable ?? true;
 }
 
 /**
